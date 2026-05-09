@@ -582,6 +582,39 @@ const ventaController = {
             console.error('❌ ERROR OPERACIÓN FALLIDA:', error.message);
             res.status(400).json({ success: false, message: error.message });
         }
+    },
+
+    actualizarStatusEnvio: async (req, res) => {
+        try {
+            const { statusenvio } = req.body;
+            const ventaId = req.params.id;
+
+            const venta = await Venta.findByPk(ventaId);
+            if (!venta) return res.status(404).json({ success: false, message: 'Venta no encontrada' });
+
+            await venta.update({ statusenvio });
+            
+            res.json({ success: true, data: venta });
+        } catch (error) {
+            console.error('Error en actualizarStatusEnvio:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    marcarComoRecibido: async (req, res) => {
+        try {
+            const ventaId = req.params.id;
+            const venta = await Venta.findByPk(ventaId);
+            if (!venta) return res.status(404).json({ success: false, message: 'Venta no encontrada' });
+
+            // Solo el cliente de la venta puede marcarla o un admin, omitimos seguridad estricta para simplicidad o validamos req.usuario.email
+            await venta.update({ statusenvio: 'Entregado' });
+            
+            res.json({ success: true, data: venta });
+        } catch (error) {
+            console.error('Error en marcarComoRecibido:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 

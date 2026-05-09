@@ -93,6 +93,7 @@ const Profile = () => {
               formData={profile.formData}
               handleBulkReturnClick={profile.handleBulkReturnClick}
               isBulkReturn={profile.isBulkReturn}
+              handleMarkAsReceived={profile.handleMarkAsReceived}
             />
           )}
 

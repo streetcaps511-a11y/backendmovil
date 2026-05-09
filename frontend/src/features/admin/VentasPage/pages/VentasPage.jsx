@@ -56,6 +56,7 @@ const VentasPage = () => {
     rejectModal, setRejectModal,
     partialPaymentModal, setPartialPaymentModal,
     annulModal, setAnnulModal,
+    sendConfirmModal, setSendConfirmModal,
     isRejecting, setIsRejecting,
     rejectionReason, setRejectionReason,
     errors,
@@ -76,6 +77,7 @@ const VentasPage = () => {
     handleCreateVenta,
     updateVentaStatus,
     handlePartialPayment,
+    handleEnviarVenta,
     requiresReceipt
   } = useVentasLogic();
 
@@ -98,7 +100,7 @@ const VentasPage = () => {
     { 
       header: 'Total', 
       field: 'total', 
-      render: (item) => <span className="sale-total-text">${Number(item.total).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> 
+      render: (item) => <span className="sale-total-text">${Number(item.total).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span> 
     },
     { 
       header: 'Tipo', 
@@ -110,9 +112,13 @@ const VentasPage = () => {
       ) 
     },
     { 
-      header: 'Dirección', 
-      field: 'direccionEnvio', 
-      render: (item) => <span className="address-text-table" title={item.direccionEnvio}>{item.direccionEnvio || 'N/A'}</span> 
+      header: 'Envío', 
+      field: 'statusenvio', 
+      render: (item) => {
+        const isCompleted = String(item.estado || item.idEstado || '').toLowerCase().includes('completad');
+        const est = isCompleted ? (item.statusenvio || 'Por enviar') : 'En espera';
+        return <StatusPill status={est} />;
+      }
     },
     { 
       header: 'Estado', 
@@ -128,6 +134,24 @@ const VentasPage = () => {
   // local state for image expansion
   const [imgModal, setImgModal] = useState({ open: false, src: '' });
   const openImage = (src) => setImgModal({ open: true, src });
+
+  // 📦 AGRUPAR PRODUCTOS PARA EL DETALLE (Para que se vea igual que al registrar)
+  const groupedProductsViendo = React.useMemo(() => {
+    if (!ventaViendo?.productos) return [];
+    const grouped = [];
+    ventaViendo.productos.forEach(p => {
+      const existing = grouped.find(item => item.id === p.id && item.nombre === p.nombre);
+      if (existing) {
+        existing.variantes.push({ talla: p.talla, cantidad: p.cantidad, _tempKey: Math.random() });
+      } else {
+        grouped.push({
+          ...p,
+          variantes: [{ talla: p.talla, cantidad: p.cantidad, _tempKey: Math.random() }]
+        });
+      }
+    });
+    return grouped;
+  }, [ventaViendo?.productos]);
 
   // local state for filtering products in detail view
   // Reset scroll when switching views
@@ -287,30 +311,7 @@ const VentasPage = () => {
 
 
 
-      {approveModal.isOpen && (
-        <div className="gm-zoom-overlay-admin" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ backgroundColor: '#0b1220', border: '1.5px solid #FFC300', borderRadius: '16px', padding: '35px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)' }}>
-            <h3 style={{ color: '#FFC300', fontSize: '22px', fontWeight: '800', marginBottom: '20px', letterSpacing: '0.5px' }}>Confirmar Aprobación</h3>
-            <p style={{ color: '#fff', fontSize: '16px', marginBottom: '30px', fontWeight: '500' }}>
-              ¿Estás seguro de que deseas aprobar la venta <strong style={{ color: '#FFC300' }}>#{approveModal.venta?.id}</strong>?
-            </p>
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              <button 
-                onClick={() => setApproveModal({ isOpen: false, venta: null })}
-                style={{ flex: 1, padding: '12px 20px', background: 'transparent', border: '1.5px solid rgba(255, 255, 255, 0.2)', color: '#fff', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={() => updateVentaStatus(availableStatuses[1])}
-                style={{ flex: 1, padding: '12px 20px', background: '#FFC300', border: 'none', color: '#000', fontWeight: '800', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px rgba(255, 195, 0, 0.3)' }}
-              >
-                {loading ? 'Aprobando...' : 'Aprobar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {partialPaymentModal.isOpen && (
         <div className="gm-zoom-overlay-admin" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -490,6 +491,34 @@ const VentasPage = () => {
         </div>
       )}
 
+      {sendConfirmModal.isOpen && (
+        <div className="gm-zoom-overlay-admin" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ backgroundColor: '#0b1220', border: '1.5px solid #FFC300', borderRadius: '16px', padding: '35px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)' }}>
+            <h3 style={{ color: '#FFC300', fontSize: '22px', fontWeight: '800', marginBottom: '20px', letterSpacing: '0.5px' }}>Confirmar Envío</h3>
+            <p style={{ color: '#fff', fontSize: '16px', marginBottom: '30px', fontWeight: '500' }}>
+              ¿Estás seguro de que deseas marcar el pedido <strong style={{ color: '#FFC300' }}>#{sendConfirmModal.venta?.id}</strong> como <span style={{ color: '#10b981' }}>Enviado</span>?
+            </p>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setSendConfirmModal({ isOpen: false, venta: null })}
+                style={{ flex: 1, padding: '12px 20px', background: 'transparent', border: '1.5px solid rgba(255, 255, 255, 0.2)', color: '#fff', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  handleEnviarVenta(sendConfirmModal.venta);
+                  setSendConfirmModal({ isOpen: false, venta: null });
+                }}
+                style={{ flex: 1, padding: '12px 20px', background: '#FFC300', border: 'none', color: '#000', fontWeight: '800', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px rgba(255, 195, 0, 0.3)' }}
+              >
+                {loading ? 'Procesando...' : 'Confirmar Envío'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Visualador de Comprobante Premium */}
       {imgModal.open && (
         <div className="gm-zoom-overlay-admin">
@@ -538,33 +567,11 @@ const VentasPage = () => {
                 className="ventas-btn-submit" 
                 disabled={loading}
               >
-                {modoVista === "formulario" ? 'Guardar Venta' : 'Guardar'}
+                {loading ? 'Guardando...' : 'Guardar Venta'}
               </button>
             )}
 
-            {modoVista === "detalle" && (
-              <button 
-                onClick={handleExportPDF} 
-                className="gm-download-btn-premium"
-                style={{
-                  padding: '6px 16px',
-                  backgroundColor: '#0f172a',
-                  color: '#ffffff',
-                  border: '1px solid #1e293b',
-                  borderRadius: '8px',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  height: '36px',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <FaDownload /> Descargar PDF
-              </button>
-            )}
+
           </div>
 
           {modoVista === "lista" && (
@@ -601,7 +608,7 @@ const VentasPage = () => {
                 columns={columns} 
                 loading={loading}
                 onView={mostrarDetalle} 
-                onApprove={v => setApproveModal({ isOpen: true, venta: v })} 
+                onApprove={v => updateVentaStatus(availableStatuses[1], '', null, v.id)} 
                 onReject={v => setRejectModal({ isOpen: true, venta: v })}
                 onAnular={v => setAnnulModal({ isOpen: true, venta: v })}
                 onPartialPago={(v) => {
@@ -613,6 +620,7 @@ const VentasPage = () => {
                     evidencia2: v.evidencia2 || null 
                   });
                 }}
+                onEnviar={(v) => setSendConfirmModal({ isOpen: true, venta: v })}
                 moduleType="ventas" 
               />
             </div>
@@ -765,7 +773,7 @@ const VentasPage = () => {
                 </div>
               </div>
               
-              <div className="products-table-header" style={{ gridTemplateColumns: '22px 1fr 110px 110px 40px' }}>
+              <div className="products-table-header" style={{ gridTemplateColumns: '22px 1fr 110px 110px 40px', gap: '12px' }}>
                 <span className="header-label">#</span>
                 <span className="header-label">Producto / Variantes</span>
                 <span className="header-label" style={{ textAlign: 'center' }}>Precio</span>
@@ -797,56 +805,53 @@ const VentasPage = () => {
               {/* CARD 1: DATOS DE VENTA (Detalle) */}
               <div className="venta-form-card">
                 <div className="section-title" style={{ color: '#8F9DB1' }}><FaUser size={14} /> Datos de venta</div>
-                <div className="form-data-grid">
-                  <div className="form-field-group">
-                    <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>No. de venta</label>
-                    <div className="product-input disabled important">{ventaViendo?.id}</div>
-                  </div>
-                  <div className="form-field-group">
-                    <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Cliente</label>
-                    <div className="product-input disabled">
-                      {typeof ventaViendo?.cliente === 'object' ? ventaViendo?.cliente?.nombre : ventaViendo?.cliente}
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>No. de venta</label>
+                      <div className="product-input disabled important">{ventaViendo?.id}</div>
                     </div>
-                  </div>
-                  <div className="form-field-group">
-                    <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Método de pago</label>
-                    <div className="product-input disabled">{ventaViendo?.metodoPago}</div>
-                  </div>
-                  <div className="form-field-group">
-                    <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Fecha</label>
-                    <div className="product-input disabled">{ventaViendo?.fecha}</div>
-                  </div>
-                  <div className="form-field-group">
-                    <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Método de entrega</label>
-                    <div className="product-input disabled">
-                      {ventaViendo?.tipoEntrega === 'recoger' ? '🏪 Recogida en local' : '🚚 Envío a domicilio'}
-                    </div>
-                  </div>
-                  <div className="form-field-group">
-                    <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Total</label>
-                    <div className="product-input disabled success" style={{ fontWeight: 800, textShadow: 'none', boxShadow: 'none' }}>
-                      ${calcularTotalViendo().toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Cliente</label>
+                      <div className="product-input disabled">
+                        {typeof ventaViendo?.cliente === 'object' ? ventaViendo?.cliente?.nombre : ventaViendo?.cliente}
+                      </div>
                     </div>
                   </div>
 
-                  {ventaViendo?.monto1 > 0 && (
-                    <div className="form-field-group">
-                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>1ra consignación</label>
-                      <div className="product-input disabled" style={{ color: '#f59e0b', fontWeight: 'bold' }}>
-                        ${Number(ventaViendo.monto1).toLocaleString('es-CO')}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Método de pago</label>
+                      <div className="product-input disabled">{ventaViendo?.metodoPago}</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Método de entrega</label>
+                      <div className="product-input disabled">
+                        {ventaViendo?.tipoEntrega === 'recoger' ? '🏪 Recogida en local' : '🚚 Envío a domicilio'}
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {ventaViendo?.monto2 > 0 && (
-                    <div className="form-field-group">
-                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>2da consignación</label>
-                      <div className="product-input disabled" style={{ color: '#f59e0b', fontWeight: 'bold' }}>
-                        ${Number(ventaViendo.monto2).toLocaleString('es-CO')}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Fecha</label>
+                      <div className="product-input disabled">{ventaViendo?.fecha}</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Total</label>
+                      <div className="product-input disabled success" style={{ fontWeight: 800, textShadow: 'none', boxShadow: 'none' }}>
+                        ${Number(ventaViendo?.total || 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </div>
                     </div>
-                  )}
-                  <div className="form-field-group full-width">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Estado Envío</label>
+                      <div className="product-input disabled" style={{ color: '#38bdf8', fontWeight: '800' }}>
+                        {ventaViendo?.statusenvio || 'Por enviar'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label className="form-label" style={{ color: '#8F9DB1', fontWeight: '800' }}>Dirección de envío</label>
                     <div className="product-input disabled address-highlight" style={{ textAlign: 'left', padding: '10px 16px' }}>
                       {ventaViendo?.direccionEnvio || 'N/A'}
@@ -912,14 +917,14 @@ const VentasPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="products-table-header products-table-header-view" style={{ gridTemplateColumns: '22px 1fr 115px 115px' }}>
-                <span className="header-label">#</span>
+              <div className="products-table-header products-table-header-view" style={{ gridTemplateColumns: '40px 1fr 140px 140px', gap: '12px' }}>
+                <span className="header-label" style={{ textAlign: 'center' }}>#</span>
                 <span className="header-label">PRODUCTO / TALLAS</span>
-                <span className="header-label">PRECIO UNI.</span>
-                <span className="header-label important">SUBTOTAL</span>
+                <span className="header-label" style={{ textAlign: 'center' }}>PRECIO UNI.</span>
+                <span className="header-label important" style={{ textAlign: 'center' }}>SUBTOTAL</span>
               </div>
               <div className="products-list-scroll">
-                {(ventaViendo?.productos || [])
+                {(groupedProductsViendo || [])
                   .filter(p => p.nombre?.toLowerCase().includes(detailSearch.toLowerCase()))
                   .map((p, i) => (
                     <ProductoForm key={i} index={i} producto={p} isViewMode={true} />

@@ -204,24 +204,13 @@ const Login = () => {
       transition: "border-color 0.2s"
     },
     fieldError: {
-      position: "absolute",
-      backgroundColor: "#ffffff",
-      color: "#d32f2f",
-      fontSize: "11px",
-      fontWeight: "700",
-      padding: "4px 10px",
-      borderRadius: "6px",
-      bottom: "-22px",
-      left: "0",
-      zIndex: 50,
-      boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-      border: "1px solid #ff4d4d",
-      whiteSpace: "nowrap",
-      pointerEvents: "none",
-      display: "flex",
-      alignItems: "center",
-      gap: "4px",
-      animation: "slideInTop 0.3s ease"
+      color: "#ff4d4d",
+      fontSize: "12px",
+      fontWeight: "600",
+      marginTop: "4px",
+      display: "block",
+      textAlign: "left",
+      animation: "fadeIn 0.3s ease"
     },
     inputWrap: { position: "relative", width: "100%", marginBottom: "15px" },
     eyeBtn: {
@@ -679,7 +668,7 @@ const Login = () => {
                       value={loginData.correo}
                       onChange={(e) => setLoginData({ ...loginData, correo: e.target.value })}
                     />
-                    {fieldErrors.correo && <span style={styles.fieldError}>⚠️ {fieldErrors.correo}</span>}
+                    {fieldErrors.correo && <span style={styles.fieldError}>{fieldErrors.correo}</span>}
                   </div>
 
                   <label style={styles.label}>Contraseña</label>
@@ -702,7 +691,7 @@ const Login = () => {
                       >
                         {showLoginPass ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                       </button>
-                      {fieldErrors.clave && <span style={styles.fieldError}>⚠️ {fieldErrors.clave}</span>}
+                      {fieldErrors.clave && <span style={styles.fieldError}>{fieldErrors.clave}</span>}
                     </div>
 
                   {error && <div style={styles.error}>{error}</div>}

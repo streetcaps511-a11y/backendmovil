@@ -385,18 +385,16 @@ export const useProfile = () => {
             });
           }
 
-          setShowReturnForm(false);
-          setShowSuccessModal(true);
-          setConfirmModal(p => ({ ...p, open: false }));
-          setReturnView('list');
-          
           setIsBulkReturn(false);
-          // Recargar datos sin refrescar la página
           loadProfileData();
         } catch (err) {
           console.error("Error submitting return:", err);
           showTopToast("No se pudo enviar la solicitud.");
         }
+      },
+      onCancel: () => {
+        // Al cancelar, simplemente cerramos el modal sin hacer nada
+        setConfirmModal(p => ({ ...p, open: false }));
       }
     });
   };
@@ -420,6 +418,33 @@ export const useProfile = () => {
       const msg = error.response?.data?.message || "Error al eliminar la cuenta.";
       showTopToast(msg);
     }
+  };
+  
+  const handleMarkAsReceived = async (orderId) => {
+    setConfirmModal({
+      open: true,
+      title: "Confirmar Entrega",
+      message: "¿Confirmas que has recibido el pedido correctamente? Esta acción marcará la entrega como finalizada.",
+      confirmText: "CONFIRMAR ENTREGA",
+      onConfirm: async () => {
+        // 🚀 OPTIMIZACIÓN EXTREMA: Actualizar UI antes de llamar a la API para respuesta instantánea
+        const updateFn = o => (o.id === orderId || o.id === `PED-${orderId}`) ? { ...o, statusenvio: 'Entregado' } : o;
+        
+        setAllOrders(prev => prev.map(updateFn));
+        setSelectedOrder(prev => (prev && (prev.id === orderId || prev.id === `PED-${orderId}`)) ? updateFn(prev) : prev);
+        
+        setConfirmModal(prev => ({ ...prev, open: false }));
+        showTopToast("¡Gracias! El pedido ha sido finalizado.");
+
+        try {
+          await profileApi.markOrderAsReceived(orderId);
+          loadProfileData(true); // Sincronización silenciosa final
+        } catch (e) {
+          showTopToast("Error al procesar, pero el estado se actualizará pronto.");
+          loadProfileData(true);
+        }
+      }
+    });
   };
 
   const CACHE_ORDERS = 'user_orders';
@@ -535,6 +560,7 @@ export const useProfile = () => {
         total: `$${Number(o.total || 0).toLocaleString('es-CO')}`,
         status,
         statusColor: statusColorMap[status] || '#FFC107',
+        statusenvio: o.statusenvio || o.StatusEnvio || 'Por enviar',
         paymentMethod: o.metodoPago,
         address: o.direccion || o.direccionEnvio || "Medellín, Colombia",
         phone: o.telefono || o.Telefono || o.Teléfono || null,
@@ -639,15 +665,37 @@ export const useProfile = () => {
   }, [activeTab, authUser]);
 
   useEffect(() => {
-    if (authUser) {
-      const interval = setInterval(() => {
-        if (activeTab === 'account' || activeTab === 'orders') loadOrders(true);
-        if (activeTab === 'account' || activeTab === 'returns') loadReturns(true);
-        loadProfileInfo();
-      }, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [authUser, activeTab]);
+    if (!authUser) return;
+
+    // 📡 Listener de sincronización en tiempo real
+    const channel = new BroadcastChannel('app_sync');
+    channel.onmessage = (event) => {
+      if (event.data === 'ventas_updated' || event.data === 'admin_sync') {
+        console.log("🚀 Sync detectado: actualizando datos de perfil...");
+        loadProfileData(true).then(() => {
+          // Si el usuario tiene un pedido abierto, actualizarlo también
+          if (selectedOrder) {
+            setAllOrders(currentOrders => {
+              const updated = currentOrders.find(o => o.id === selectedOrder.id);
+              if (updated) setSelectedOrder(updated);
+              return currentOrders;
+            });
+          }
+        });
+      }
+    };
+
+    const interval = setInterval(() => {
+      if (activeTab === 'account' || activeTab === 'orders') loadOrders(true);
+      if (activeTab === 'account' || activeTab === 'returns') loadReturns(true);
+      loadProfileInfo();
+    }, 45000); // 45s (Nitro Sync se encarga de lo inmediato)
+
+    return () => {
+      channel.close();
+      clearInterval(interval);
+    };
+  }, [authUser, activeTab, selectedOrder]);
 
   const filteredOrders = useMemo(() => {
     const q = orderQuery.toLowerCase();
@@ -725,6 +773,7 @@ export const useProfile = () => {
     handleEditClick, handleSaveClick, handleChange, getAvatarInitial, openFilePicker,
     onPickAvatar, removeAvatar, openImage, handleReturnClick, handleContinueToReturn,
     handleReturnImageUpload, handleReturnSubmit, getPriceNum, deactivateAccount, deleteAccount,
+    handleMarkAsReceived,
     BULK_MIN_QTY: 6
   };
 };

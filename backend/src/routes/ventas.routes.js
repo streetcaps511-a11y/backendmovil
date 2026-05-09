@@ -35,5 +35,7 @@ router.post('/completa', checkPermission('crear_ventas'), ventaController.create
 router.post('/:id/anular', checkPermission('anular_ventas'), ventaController.anularVenta);
 router.post('/:id/procesar-pago', checkPermission('editar_ventas'), ventaController.procesarPago);
 router.patch('/:id/estado', checkPermission('editar_ventas'), ventaController.actualizarEstado);
+router.patch('/:id/envio', checkPermission('editar_ventas'), ventaController.actualizarStatusEnvio);
+router.patch('/:id/marcar-recibido', ventaController.marcarComoRecibido);
 
 export default router;

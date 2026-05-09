@@ -67,7 +67,7 @@ api.interceptors.response.use(
       }
 
       // 🔐 CASO 2: Token expirado o inválido general
-      if (!isAuthRoute) {
+      if (!isAuthRoute && error.response?.status === 401 && !url.includes('/mi/perfil')) {
         sessionStorage.clear();
         window.location.href = '/login?expired=true';
       }

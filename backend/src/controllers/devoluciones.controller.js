@@ -213,7 +213,8 @@ const devolucionController = {
                 observacion: observacion || null,
                 mismoModelo: mismoModelo === true || mismoModelo === 'true' || false,
                 pedidoCompleto: pedidoCompleto === true || pedidoCompleto === 'true' || false,
-                noVenta: idVenta || null
+                noVenta: idVenta || null,
+                idLote: idLote || null
             };
 
             // 🔍 BUSCAR INFO DEL CLIENTE
@@ -307,10 +308,14 @@ const devolucionController = {
                 await decreaseProductStock(dev, transaction);
             }
 
-            // 🔄 PROPAGAR CAMBIOS A TODA LA VENTA SI EXISTE
-            if (dev.noVenta) {
+            // 🔄 PROPAGAR CAMBIOS AL LOTE O VENTA SI EXISTE
+            const propagateWhere = dev.idLote 
+                ? { idLote: dev.idLote, id: { [Op.ne]: dev.id } }
+                : (dev.noVenta ? { noVenta: dev.noVenta, id: { [Op.ne]: dev.id } } : null);
+
+            if (propagateWhere) {
                 const siblings = await Devolucion.findAll({ 
-                    where: { noVenta: dev.noVenta, id: { [Op.ne]: dev.id } },
+                    where: propagateWhere,
                     transaction 
                 });
 

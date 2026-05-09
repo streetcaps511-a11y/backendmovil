@@ -515,6 +515,10 @@ const DevolucionesPage = () => {
                       <label className="dev-field-label">CLIENTE</label>
                       <div className="form-field-display">{devolucionViendo?.cliente}</div>
                     </div>
+                    <div className="dev-form-group address" style={{ flex: 1 }}>
+                      <label className="dev-field-label">DIRECCIÓN</label>
+                      <div className="form-field-display">{devolucionViendo?.direccion}</div>
+                    </div>
                     <div className="dev-form-group sale" style={{ flex: 1 }}>
                       <label className="dev-field-label">VENTA / RECIBO</label>
                       <div className="form-field-display id">ORDEN #{devolucionViendo?.idVenta || devolucionViendo?.id || 'N/A'}</div>

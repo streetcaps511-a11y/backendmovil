@@ -50,6 +50,7 @@ export const getSales = getVentas;
 export const createVenta = (data) => api.post("/api/ventas", data);
 export const createSale = createVenta;
 export const updateSale = (id, data) => api.put(`/api/ventas/${id}`, data);
+export const updateEnvioStatus = (id, statusenvio) => api.patch(`/api/ventas/${id}/envio`, { statusenvio });
 
 // ── Compras ──
 export const getCompras = () => api.get("/api/compras");

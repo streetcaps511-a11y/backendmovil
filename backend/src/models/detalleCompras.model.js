@@ -29,21 +29,13 @@ const CompraDetalle = sequelize.define('CompraDetalle', {
         field: 'Nfactura',
         comment: 'Número de factura manual vinculado al detalle'
     },
-    idTalla: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        field: 'IdTalla'
-    },
+
     nombreProducto: {
         type: DataTypes.STRING(255),
         allowNull: false,
         field: 'NombreProducto'
     },
-    talla: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
-        field: 'Talla'
-    },
+
     cantidad: {
         type: DataTypes.INTEGER,
         allowNull: true,

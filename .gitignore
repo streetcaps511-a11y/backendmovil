@@ -28,3 +28,13 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+
+# Local uploads
+backend/public/uploads/
+
+# Scratch scripts
+backend/fix_column.js
+backend/test_ventas.js
+
+# Redundant folders
+gorrasmedellin-main/

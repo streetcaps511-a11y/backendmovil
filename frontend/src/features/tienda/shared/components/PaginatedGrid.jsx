@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const INITIAL_ITEMS = 7; // Siempre 7 inicialmente
-const LOAD_MORE_STEP = 7; // Siempre 7 al cargar más
+const INITIAL_ITEMS = 10; // Siempre 10 inicialmente
+const LOAD_MORE_STEP = 10; // Siempre 10 al cargar más
 
 const PaginatedGrid = ({ 
   products, 

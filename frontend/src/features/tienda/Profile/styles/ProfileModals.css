@@ -22,9 +22,9 @@
   max-width: 360px; 
   padding: 30px 20px;
   border-radius: 12px; /* Menos redondo */
-  border: 1px solid rgba(204, 0, 0, 0.3); /* Borde rojo sutil */
+  border: 1px solid #FFC107; /* Borde amarillo solicitado */
   text-align: center;
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.1); 
+  box-shadow: 0 0 20px rgba(255, 193, 7, 0.1); 
   animation: modalScaleUpCenter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -133,8 +133,8 @@
 
 .gm-btn-cancel-p, .gm-btn-confirm-p {
   flex: 1;
-  padding: 14px 20px;
-  border-radius: 8px; /* Menos redondo, estilo profesional */
+  padding: 6px 20px;
+  border-radius: 8px; 
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
@@ -155,8 +155,10 @@
 }
 
 .gm-btn-confirm-p {
-  background: #FFC107; /* Amarillo de la marca */
-  color: #000;
+  background: #10b981; /* Verde esmeralda de arriba solicitado */
+  color: #fff;
+  border: 1px solid #10b981;
+  white-space: nowrap; /* Una sola línea solicitado */
 }
 
 .gm-btn-confirm-p.danger {
@@ -185,10 +187,10 @@
 /* Policy Modal */
 .gm-policy-modal {
   background-color: #0f172a; 
-  max-width: 520px; 
+  max-width: 440px; 
   width: 100%; 
   border-radius: 16px; 
-  padding: 30px; 
+  padding: 24px; 
   border: 1px solid rgba(255,255,255,0.1); 
   box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
   position: relative; 

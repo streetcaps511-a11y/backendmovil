@@ -117,7 +117,7 @@
 }
 
 .products-table-header-view {
-  grid-template-columns: 1.6fr 1.2fr 100px 140px 140px !important;
+  /* Se define en el componente para mayor flexibilidad */
 }
 
 .products-table-header .header-label {

@@ -50,7 +50,7 @@ const compraController = {
                 offset: parseInt(offset),
                 order: [['fecha', 'DESC']],
                 include: [
-                    { model: Proveedor, as: 'proveedorData', attributes: ['id', 'nombre', 'email'] },
+                    { model: Proveedor, as: 'proveedorData', attributes: ['id', 'companyName', 'email'] },
                     { 
                         model: DetalleCompra, 
                         as: 'detalles', 

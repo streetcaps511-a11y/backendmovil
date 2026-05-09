@@ -111,12 +111,13 @@ export const verifyToken = async (req, res, next) => {
     const platform = decoded.platform || 'web';
     const dbSessionId = platform === 'app' ? usuario.sessionIdApp : usuario.sessionId;
 
-    if (dbSessionId && decoded.sessionId !== dbSessionId) {
+    // 🔓 MODIFICACIÓN SOLICITADA: Desactivar cierre automático por doble sesión en Web
+    if (platform === 'app' && dbSessionId && decoded.sessionId !== dbSessionId) {
       console.log(`⚠️ Sesión invalidada para ${usuario.email} en ${platform}: El ID del token no coincide.`);
       return res.status(401).json({
         success: false,
         isSessionInvalidated: true,
-        message: `Tu sesión ha sido abierta en otro ${platform === 'app' ? 'dispositivo (App)' : 'navegador (Web)'}.`
+        message: `Tu sesión ha sido abierta en otro dispositivo (App).`
       });
     }
 
@@ -139,6 +140,16 @@ export const verifyToken = async (req, res, next) => {
 
   } catch (error) {
     console.error('❌ Error en verifyToken:', error.name, '-', error.message);
+    
+    // 🛡️ NO CERRAR SESIÓN SI ES UN ERROR DE BASE DE DATOS
+    if (error.name.includes('Sequelize') || error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+      return res.status(503).json({
+        success: false,
+        message: 'Error temporal de conexión con el servidor de datos. Reintentando...',
+        isDbError: true
+      });
+    }
+
     return res.status(401).json({
       success: false,
       message: error.name === 'JsonWebTokenError' ? 'Token malformado o inválido' :

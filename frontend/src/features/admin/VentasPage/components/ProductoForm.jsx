@@ -39,48 +39,53 @@ const ProductoForm = React.memo(function ProductoForm({
   };
 
   const gridCols = isViewMode 
-    ? '22px minmax(0, 1fr) 110px 110px'
-    : '22px minmax(0, 1fr) 110px 110px 40px';
+    ? '40px 1fr 140px 140px'
+    : '22px 1fr 110px 110px 40px';
 
   if (isViewMode) {
     return (
-      <div className="product-form-row view-mode" style={{ gridTemplateColumns: gridCols, gap: '12px', alignItems: 'start', padding: '8px 0', borderBottom: '1px solid #334155' }}>
+      <div className="product-form-row view-mode" style={{ gridTemplateColumns: gridCols, gap: '12px', alignItems: 'start', padding: '12px 0', borderBottom: '1px solid #ffffff08' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', color: '#F5C81B', height: '34px' }}>
           {index + 1}.
         </div>
-        <div>
-          <div className="product-input disabled" style={{ fontWeight: '600' }}>{producto.nombre || '-'}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-            {(producto.variantes || []).map((v, i) => (
-              <div key={i} style={{ 
-                backgroundColor: 'rgba(245, 200, 27, 0.1)', 
-                padding: '2px 8px', 
-                borderRadius: '4px', 
-                fontSize: '11px', 
-                border: '1px solid #F5C81B40',
-                color: '#F5C81B',
-                fontWeight: '700'
+        <div style={{ minWidth: 0, flex: 1, textAlign: 'left', paddingLeft: '10px' }}>
+          <div className="product-input disabled" style={{ fontWeight: '700', textAlign: 'left', justifyContent: 'flex-start', border: 'none', background: 'transparent', padding: '0', fontSize: '14px', marginBottom: '6px' }}>{producto.nombre || '-'}</div>
+          
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {(producto.variantes || []).map((v, vi) => (
+              <div key={vi} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid #334155',
+                fontSize: '11px'
               }}>
-                <span style={{ textTransform: 'capitalize' }}>{v.talla?.toLowerCase()}</span> {v.cantidad}
+                <span style={{ color: '#F5C81B', fontWeight: '800', textTransform: 'capitalize' }}>
+                  {v.talla}
+                </span>
+                <span style={{ color: '#ffffff20' }}>|</span>
+                <span style={{ color: '#fff', fontWeight: '700' }}>
+                  {v.cantidad} ud.
+                </span>
               </div>
             ))}
           </div>
-          <div style={{ textAlign: 'right', fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>
-             Subtotal: <span style={{ color: '#00f2ff', fontWeight: '700' }}>${subtotal.toLocaleString('es-CO')}</span>
-          </div>
         </div>
         <div>
-          <div className="product-input disabled price" style={{ textAlign: 'center', border: '1px solid #334155' }}>${Number(producto.precio || 0).toLocaleString('es-CO')}</div>
+          <div className="product-input disabled price" style={{ textAlign: 'center', border: '1px solid #334155', height: '34px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>${Number(producto.precio || 0).toLocaleString('es-CO')}</div>
         </div>
         <div>
-          <div className="product-input disabled price" style={{ textAlign: 'center', color: '#00f2ff', fontWeight: '800', border: '1px solid #334155' }}>${subtotal.toLocaleString('es-CO')}</div>
+          <div className="product-input disabled price" style={{ textAlign: 'center', color: '#00f2ff', fontWeight: '800', border: '1px solid #334155', height: '34px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,242,255,0.02)' }}>${subtotal.toLocaleString('es-CO')}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="product-form-row" style={{ gridTemplateColumns: gridCols, gap: '10px', paddingBottom: '5px', alignItems: 'start', position: 'relative' }}>
+    <div className="product-form-row" style={{ gridTemplateColumns: gridCols, gap: '12px', paddingBottom: '5px', alignItems: 'start', position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', color: '#F5C81B', height: '34px', width: '22px' }}>
         {index + 1}.
       </div>

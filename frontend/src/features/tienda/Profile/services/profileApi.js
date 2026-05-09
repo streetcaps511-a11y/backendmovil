@@ -114,3 +114,14 @@ export const deleteAccountPermanently = async () => {
     throw error;
   }
 };
+
+export const markOrderAsReceived = async (orderId) => {
+  try {
+    const id = String(orderId).replace('PED-', '');
+    const response = await api.patch(`/api/ventas/${id}/marcar-recibido`);
+    return response.data;
+  } catch (error) {
+    console.error("Error marking order as received:", error);
+    throw error;
+  }
+};

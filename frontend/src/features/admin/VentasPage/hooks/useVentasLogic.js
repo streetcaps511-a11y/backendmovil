@@ -47,6 +47,7 @@ export const useVentasLogic = (initialAvailableProducts = [], initialAvailableCu
   const [rejectModal, setRejectModal] = useState({ isOpen: false, venta: null });
   const [partialPaymentModal, setPartialPaymentModal] = useState({ isOpen: false, venta: null, montoRecibido: '', montoNuevo: '', evidencia2: null });
   const [annulModal, setAnnulModal] = useState({ isOpen: false, venta: null });
+  const [sendConfirmModal, setSendConfirmModal] = useState({ isOpen: false, venta: null });
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   
@@ -331,7 +332,10 @@ export const useVentasLogic = (initialAvailableProducts = [], initialAvailableCu
       showAlert('Venta registrada exitosamente');
       
       notifySync();
-      mostrarLista();
+      // Esperar un momento para que el usuario vea el mensaje de éxito
+      setTimeout(() => {
+        mostrarLista();
+      }, 1200);
     } catch (error) {
       showAlert("Error registrando venta: " + error.message, "error");
     } finally {
@@ -413,6 +417,24 @@ export const useVentasLogic = (initialAvailableProducts = [], initialAvailableCu
     }
   };
 
+  const handleEnviarVenta = async (venta) => {
+    setLoading(true);
+    try {
+      const updated = await ventasService.updateEnvioStatus(venta.id, 'Enviado');
+      const newVentas = ventas.map(v => v.id === updated.id ? updated : v);
+      setVentas(newVentas);
+      NitroCache.set('ventas', newVentas);
+      if (ventaViendo?.id === updated.id) setVentaViendo(updated);
+      showAlert(`Estado de envío actualizado a Enviado`);
+      notifySync();
+    } catch (error) {
+      console.error('❌ Error en handleEnviarVenta:', error);
+      showAlert("Error actualizando estado de envío", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ====== FILTRADO ======
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
@@ -446,6 +468,7 @@ export const useVentasLogic = (initialAvailableProducts = [], initialAvailableCu
     rejectModal, setRejectModal,
     partialPaymentModal, setPartialPaymentModal,
     annulModal, setAnnulModal,
+    sendConfirmModal, setSendConfirmModal,
     isRejecting, setIsRejecting,
     rejectionReason, setRejectionReason,
     errors,
@@ -466,6 +489,7 @@ export const useVentasLogic = (initialAvailableProducts = [], initialAvailableCu
     handleCreateVenta,
     updateVentaStatus,
     handlePartialPayment,
+    handleEnviarVenta,
     requiresReceipt
   };
 };

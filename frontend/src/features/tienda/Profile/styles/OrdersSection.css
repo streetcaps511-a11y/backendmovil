@@ -161,7 +161,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 50px; /* Espaciado generoso */
+  gap: 20px; 
   text-align: right;
   font-size: 1rem;
 }
@@ -325,7 +325,6 @@
 
 .gm-receipt-container-premium {
   width: 100%;
-  max-width: 320px;
   height: 320px;
   margin-top: 20px;
   border-radius: 15px;
@@ -1023,40 +1022,74 @@
     flex-wrap: wrap !important;
   }
 
+  .gm-order-header {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .gm-order-id-group {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
   .gm-item-ultra-horizontal-content {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
+    flex-direction: row !important; 
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 15px !important;
     width: 100%;
+    flex-wrap: nowrap !important;
+  }
+
+  .gm-order-temu-item {
+    gap: 8px !important;
+    padding: 8px 10px !important;
+  }
+
+  .gm-item-ultra-horizontal-content {
+    gap: 10px !important;
   }
 
   .gm-item-ultra-horizontal-content > div:first-child {
-    flex-direction: row !important; /* Mismo renglon solicitado */
-    align-items: center !important;
-    gap: 15px !important;
-    flex-wrap: wrap; /* Por si el nombre es muy largo */
+    gap: 8px !important;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
   }
 
   .gm-item-name {
-    font-size: 1rem !important; /* Mas grande solicitado */
-    white-space: normal !important; 
+    font-size: 0.85rem !important; 
+    max-width: 120px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .gm-item-spec-info {
-    font-size: 0.85rem !important; /* Mas grande solicitado */
-  }
-
-  .gm-item-action-price-group {
-    width: 100%;
-    justify-content: space-between !important;
-    gap: 10px !important;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.7rem !important;
+    white-space: nowrap;
   }
 
   .gm-item-price {
-    font-size: 1.1rem !important;
+    min-width: 75px !important;
+    font-size: 0.95rem !important;
+    text-align: right;
+  }
+
+  .gm-detail-top-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+  }
+
+  .gm-header-right-group {
+    justify-content: space-between !important;
+    width: 100% !important;
+    display: flex !important;
   }
 
   .gm-order-card {

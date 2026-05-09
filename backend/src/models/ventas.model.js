@@ -101,6 +101,12 @@ const Venta = sequelize.define('Venta', {
         type: DataTypes.STRING(100),
         allowNull: true,
         field: 'NoVenta'
+    },
+    statusenvio: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        defaultValue: 'Por enviar',
+        field: 'StatusEnvio'
     }
 }, {
     tableName: 'Ventas',

@@ -21,8 +21,8 @@ export const sequelize = new Sequelize(
     pool: {
       max: 5, // Reducido para evitar agotar conexiones en Aiven Free
       min: 0,
-      acquire: 30000,
-      idle: 10000,
+      acquire: 60000, // Aumentado a 60s para mayor resiliencia
+      idle: 20000,   // Aumentado a 20s
     },
   }
 );

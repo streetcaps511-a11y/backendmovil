@@ -73,8 +73,6 @@ DetalleCompra.belongsTo(Compra, { foreignKey: 'idCompra', as: 'compra' });
 
 // DetalleCompra ↔ Producto / Talla
 DetalleCompra.belongsTo(Producto, { foreignKey: 'idProducto', as: 'producto' });
-// Si Talla se asocia por ID
-DetalleCompra.belongsTo(Talla, { foreignKey: 'idTalla', as: 'tallaData' });
 
 // ──────────────────────────────────────────────────────────
 // ✅ Venta ↔ Cliente / Estado / DetalleVenta

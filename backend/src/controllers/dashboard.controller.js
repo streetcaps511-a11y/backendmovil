@@ -88,29 +88,29 @@ const dashboardController = {
             // Ventas del día
             const ventasHoy = await Venta.count({
                 where: {
-                    Fecha: { [Op.gte]: hoy },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: hoy },
+                    idEstado: 'Completada'
                 }
             });
 
-            const totalVentasHoy = await Venta.sum('Total', {
+            const totalVentasHoy = await Venta.sum('total', {
                 where: {
-                    Fecha: { [Op.gte]: hoy },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: hoy },
+                    idEstado: 'Completada'
                 }
             }) || 0;
 
             // Ventas del mes
-            const totalVentasMes = await Venta.sum('Total', {
+            const totalVentasMes = await Venta.sum('total', {
                 where: {
-                    Fecha: { [Op.gte]: inicioMes },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: inicioMes },
+                    idEstado: 'Completada'
                 }
             }) || 0;
 
             // Productos con stock bajo
             const productosBajoStock = await Producto.count({
-                where: { Stock: { [Op.lt]: 10 } }
+                where: { stock: { [Op.lt]: 10 } }
             });
 
             // Clientes nuevos hoy
@@ -176,8 +176,8 @@ const dashboardController = {
                     [sequelize.fn('SUM', sequelize.col('Total')), 'total']
                 ],
                 where: {
-                    Fecha: { [Op.gte]: fechaInicio },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: fechaInicio },
+                    idEstado: 'Completada'
                 },
                 group: [sequelize.fn('DATE', sequelize.col('Fecha'))],
                 order: [[sequelize.literal('dia'), 'ASC']]
@@ -186,15 +186,15 @@ const dashboardController = {
             // Productos por categoría
             const productosPorCategoria = await Producto.findAll({
                 attributes: [
-                    'IdCategoria',
+                    'idCategoria',
                     [sequelize.fn('COUNT', sequelize.col('IdProducto')), 'cantidad']
                 ],
                 include: [{
                     model: Categoria,
                     as: 'categoriaData',
-                    attributes: ['Nombre']
+                    attributes: ['nombre']
                 }],
-                group: ['IdCategoria', 'categoriaData.IdCategoria', 'categoriaData.Nombre']
+                group: ['idCategoria', 'categoriaData.IdCategoria', 'categoriaData.Nombre']
             });
 
             res.json({
@@ -230,10 +230,10 @@ const dashboardController = {
                     [sequelize.fn('SUM', sequelize.col('Total')), 'total']
                 ],
                 where: {
-                    Fecha: {
+                    fecha: {
                         [Op.gte]: new Date(new Date().setDate(new Date().getDate() - 30))
                     },
-                    IdEstado: 'Completada'
+                    idEstado: 'Completada'
                 },
                 group: [sequelize.fn('DATE', sequelize.col('Fecha'))],
                 order: [[sequelize.literal('dia'), 'ASC']]
@@ -260,15 +260,15 @@ const dashboardController = {
         try {
             const topProductos = await DetalleVenta.findAll({
                 attributes: [
-                    'IdProducto',
+                    'idProducto',
                     [sequelize.fn('SUM', sequelize.col('Cantidad')), 'total']
                 ],
                 include: [{
                     model: Producto,
                     as: 'producto',
-                    attributes: ['Nombre']
+                    attributes: ['nombre']
                 }],
-                group: ['IdProducto', 'producto.IdProducto', 'producto.Nombre'],
+                group: ['idProducto', 'producto.IdProducto', 'producto.Nombre'],
                 order: [[sequelize.literal('total'), 'DESC']],
                 limit: 10
             });
@@ -300,18 +300,18 @@ const dashboardController = {
 
             const ventas = await Venta.findAll({
                 where: {
-                    Fecha: {
+                    fecha: {
                         [Op.between]: [fechaConsulta, fechaFin]
                     },
-                    IdEstado: 'Completada'
+                    idEstado: 'Completada'
                 },
                 include: [
                     { model: Cliente, as: 'clienteData', attributes: ['nombreCompleto'] },
-                    { model: DetalleVenta, as: 'Detalles' }
+                    { model: DetalleVenta, as: 'detalles' }
                 ]
             });
 
-            const total = ventas.reduce((sum, v) => sum + v.Total, 0);
+            const total = ventas.reduce((sum, v) => sum + Number(v.total), 0);
             const cantidad = ventas.length;
 
             res.json({
@@ -339,16 +339,16 @@ const dashboardController = {
 
             const productos = await DetalleVenta.findAll({
                 attributes: [
-                    'IdProducto',
+                    'idProducto',
                     [sequelize.fn('SUM', sequelize.col('Cantidad')), 'totalVendido'],
                     [sequelize.fn('SUM', sequelize.col('Subtotal')), 'totalIngresos']
                 ],
                 include: [{
                     model: Producto,
                     as: 'producto',
-                    attributes: ['Nombre', 'PrecioVenta', 'url']
+                    attributes: ['nombre', 'precioVenta', 'imagenes']
                 }],
-                group: ['IdProducto', 'producto.IdProducto', 'producto.Nombre', 'producto.PrecioVenta', 'producto.url'],
+                group: ['idProducto', 'producto.IdProducto', 'producto.Nombre', 'producto.PrecioVenta', 'producto.Imagenes'],
                 order: [[sequelize.literal('totalVendido'), 'DESC']],
                 limit: parseInt(limite)
             });
@@ -356,9 +356,9 @@ const dashboardController = {
             res.json({
                 success: true,
                 data: productos.map(p => ({
-                    producto: p.producto?.Nombre,
-                    imagen: p.producto?.url,
-                    precio: p.producto?.PrecioVenta,
+                    producto: p.producto?.nombre,
+                    imagen: p.producto?.imagenes?.[0],
+                    precio: p.producto?.precioVenta,
                     totalVendido: parseInt(p.dataValues.totalVendido),
                     totalIngresos: p.dataValues.totalIngresos
                 }))
@@ -379,17 +379,17 @@ const dashboardController = {
 
             const clientes = await Venta.findAll({
                 attributes: [
-                    'IdCliente',
+                    'idCliente',
                     [sequelize.fn('COUNT', sequelize.col('IdVenta')), 'totalCompras'],
                     [sequelize.fn('SUM', sequelize.col('Total')), 'totalGastado']
                 ],
-                where: { IdEstado: 'Completada' },
+                where: { idEstado: 'Completada' },
                 include: [{
                     model: Cliente,
                     as: 'clienteData',
                     attributes: ['nombreCompleto', 'email', 'telefono']
                 }],
-                group: ['IdCliente', 'clienteData.IdCliente', 'clienteData.nombreCompleto', 'clienteData.email', 'clienteData.telefono'],
+                group: ['idCliente', 'clienteData.IdCliente', 'clienteData.nombreCompleto', 'clienteData.email', 'clienteData.telefono'],
                 order: [[sequelize.literal('totalCompras'), 'DESC']],
                 limit: parseInt(limite)
             });
@@ -429,23 +429,23 @@ const dashboardController = {
                 fechaInicio = new Date(ahora.setFullYear(ahora.getFullYear() - 1));
             }
 
-            const totalVentas = await Venta.sum('Total', {
+            const totalVentas = await Venta.sum('total', {
                 where: {
-                    Fecha: { [Op.gte]: fechaInicio },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: fechaInicio },
+                    idEstado: 'Completada'
                 }
             }) || 0;
 
-            const totalCompras = await Compra.sum('Total', {
+            const totalCompras = await Compra.sum('total', {
                 where: {
-                    Fecha: { [Op.gte]: fechaInicio }
+                    fecha: { [Op.gte]: fechaInicio }
                 }
             }) || 0;
 
-            const totalDevoluciones = await Devolucion.sum('MontoReembolsado', {
+            const totalDevoluciones = await Devolucion.sum('valor', {
                 where: {
-                    Fecha: { [Op.gte]: fechaInicio },
-                    Estado: 'aprobada'
+                    fecha: { [Op.gte]: fechaInicio },
+                    idEstado: 'aprobada'
                 }
             }) || 0;
 
@@ -479,15 +479,15 @@ const dashboardController = {
             
             const cantidad = await Venta.count({
                 where: {
-                    Fecha: { [Op.gte]: hoy },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: hoy },
+                    idEstado: 'Completada'
                 }
             });
 
-            const total = await Venta.sum('Total', {
+            const total = await Venta.sum('total', {
                 where: {
-                    Fecha: { [Op.gte]: hoy },
-                    IdEstado: 'Completada'
+                    fecha: { [Op.gte]: hoy },
+                    idEstado: 'Completada'
                 }
             }) || 0;
 
@@ -517,8 +517,8 @@ const dashboardController = {
             const { umbral = 10 } = req.query;
 
             const productos = await Producto.findAll({
-                where: { Stock: { [Op.lt]: umbral } },
-                order: [['Stock', 'ASC']],
+                where: { stock: { [Op.lt]: umbral } },
+                order: [['stock', 'ASC']],
                 limit: 20
             });
 
@@ -529,9 +529,9 @@ const dashboardController = {
                 data: {
                     cantidad,
                     productos: productos.map(p => ({
-                        id: p.IdProducto,
-                        nombre: p.Nombre,
-                        stock: p.Stock
+                        id: p.id,
+                        nombre: p.nombre,
+                        stock: p.stock
                     }))
                 }
             });
@@ -548,15 +548,15 @@ const dashboardController = {
     getAlertas: async (req, res) => {
         try {
             const stockBajo = await Producto.count({
-                where: { Stock: { [Op.lt]: 10 } }
+                where: { stock: { [Op.lt]: 10 } }
             });
 
             const devolucionesPendientes = await Devolucion.count({
-                where: { Estado: 'pendiente' }
+                where: { estado: 'pendiente' }
             });
 
             const ventasPendientes = await Venta.count({
-                where: { IdEstado: 'Pendiente' }
+                where: { idEstado: 'Pendiente' }
             });
 
             res.json({

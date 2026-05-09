@@ -34,6 +34,7 @@ const EntityTable = ({
   onApprove,
   onReject,
   onPartialPago,
+  onEnviar,
   onReactivar,
   estadoField = 'estado',
   moduleType = 'generic',
@@ -241,6 +242,17 @@ const EntityTable = ({
                                 className="action-icon action-partial"
                                 onClick={() => onPartialPago(row)}
                                 style={{ color: '#f59e0b' }}
+                              />
+                            </span>
+                          )}
+
+                          {onEnviar && moduleType === 'ventas' && (row.statusenvio === 'Por enviar' || !row.statusenvio) && (String(row.estado || '').toLowerCase().includes('completad')) && (
+                            <span data-tooltip="Marcar como Enviado">
+                              <FaCheckCircle
+                                size={18}
+                                className="action-icon action-enviar"
+                                onClick={() => onEnviar(row)}
+                                style={{ color: '#3b82f6' }}
                               />
                             </span>
                           )}

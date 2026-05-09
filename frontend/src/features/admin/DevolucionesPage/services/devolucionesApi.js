@@ -31,6 +31,7 @@ export const mapDevolucionData = (d) => {
     id: d.id || d.IdDevolucion || '',
     numDevolucion: d.id || d.IdDevolucion || '',
     cliente: d.nombreCliente || d.ventaOriginal?.clienteData?.nombreCompleto || d.ventaOriginal?.clienteData?.Nombre || 'Cliente',
+    direccion: d.ventaOriginal?.direccionEnvio || 'No especificada',
     idCliente: d.idCliente || d.ventaOriginal?.clienteData?.id || null,
     productoOriginal: d.productoInfo?.nombre || d.productoOriginal || 'Gorra',
     productoOriginalId: d.idProducto || d.IdProducto || '',

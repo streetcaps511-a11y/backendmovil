@@ -81,20 +81,26 @@ export const mapBackendToFrontend = (v) => {
       metodoPago: v.metodoPago || v.MetodoPago || 'Efectivo',
       estado: estadoNombre,
       idEstado: v.idEstado || v.IdEstado,
+      statusenvio: v.statusenvio || v.StatusEnvio || 'Por enviar',
       evidencia: getEvidencia(),
       evidencia2: getEvidencia2(),
       tipoEntrega: v.tipoEntrega || v.TipoEntrega || 'envio',
       direccionEnvio: v.direccionEnvio || v.DireccionEnvio || 'N/A',
       motivoRechazo: v.motivoRechazo || v.MotivoRechazo || '',
       productos: Array.isArray(v.detalles || v.Productos || v.productos) 
-        ? (v.detalles || v.Productos || v.productos).map(d => ({
-            id: d.idProducto || d.id,
-            nombre: d.producto?.nombre || d.nombre || 'Producto',
-            talla: d.talla || '',
-            cantidad: d.cantidad || 1,
-            precio: d.precio || d.producto?.precioVenta || 0,
-            subtotal: d.subtotal || 0
-          }))
+        ? (v.detalles || v.Productos || v.productos).map(d => {
+            // Manejar tanto variantes como talla única
+            const variantes = Array.isArray(d.variantes) ? d.variantes : [{ talla: d.talla || 'U', cantidad: d.cantidad || 1 }];
+            return {
+              id: d.idProducto || d.id,
+              nombre: d.producto?.nombre || d.nombre || 'Producto',
+              variantes: variantes,
+              talla: d.talla || '', // fallback
+              cantidad: d.cantidad || 1,
+              precio: d.precio || d.producto?.precioVenta || 0,
+              subtotal: d.subtotal || 0
+            };
+          })
         : []
     };
   } catch (err) {
@@ -182,6 +188,16 @@ export const updateSaleStatus = async (id, status, reason = '', evidence = null,
     return mapBackendToFrontend(response.data?.data || response.data);
   } catch (error) {
     console.error("Error updating sale status:", error);
+    throw error;
+  }
+};
+
+export const updateEnvioStatus = async (id, statusenvio) => {
+  try {
+    const response = await adminApi.updateEnvioStatus(id, statusenvio);
+    return mapBackendToFrontend(response.data?.data || response.data);
+  } catch (error) {
+    console.error("Error updating envio status:", error);
     throw error;
   }
 };

@@ -62,54 +62,78 @@ export const PolicyModal = ({ onClose, onContinue }) => {
   return (
     <div className="gm-modal-overlay-p">
       <div className="gm-policy-modal">
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", margin: 0 }}>Políticas de Cambios y Devoluciones</h3>
+        <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", margin: 0 }}>Políticas de Cambios y Devoluciones</h3>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '25px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.01)', borderRadius: '12px', padding: '18px 22px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <p style={{ color: "#cbd5e1", lineHeight: "1.4", fontSize: "0.85rem", marginBottom: "12px", fontWeight: 600 }}>
-              En <span style={{ color: '#FFC107' }}>Gorras Medellín Caps</span> queremos que estés 100% satisfecho con tu compra.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.01)', borderRadius: '12px', padding: '14px 18px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <p style={{ color: "#cbd5e1", lineHeight: "1.4", fontSize: "0.8rem", marginBottom: "12px", fontWeight: 600 }}>
+              En <span style={{ color: '#FFC107' }}>Gorras Medellín Caps</span> queremos que tu experiencia sea excelente. Para garantizar un proceso de cambio exitoso, ten en cuenta:
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <ul style={{ color: "#94a3b8", fontSize: "0.75rem", lineHeight: "1.4", paddingLeft: "15px", margin: 0 }}>
-                <li style={{ marginBottom: '4px' }}>Cambios en los primeros <strong>5 días</strong>.</li>
-                <li>Gorra <strong>sin uso</strong> con etiquetas.</li>
-              </ul>
-              <ul style={{ color: "#94a3b8", fontSize: "0.75rem", lineHeight: "1.4", paddingLeft: "15px", margin: 0 }}>
-                <li style={{ marginBottom: '4px' }}>No hay devoluciones de dinero.</li>
-                <li>Envío por cuenta del cliente.</li>
-              </ul>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'start' }}>
+                  <FaCheckCircle style={{ color: '#FFC107', marginTop: '2px', flexShrink: 0 }} size={12} />
+                  <p style={{ color: "#94a3b8", fontSize: "0.75rem", lineHeight: "1.4", margin: 0 }}>
+                    Tienes un plazo máximo de <strong>5 días</strong> tras recibir el pedido para solicitar el cambio.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'start' }}>
+                  <FaCheckCircle style={{ color: '#FFC107', marginTop: '2px', flexShrink: 0 }} size={12} />
+                  <p style={{ color: "#94a3b8", fontSize: "0.75rem", lineHeight: "1.4", margin: 0 }}>
+                    La gorra debe estar <strong>totalmente nueva</strong>, sin rastro de uso y con sus etiquetas originales.
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'start' }}>
+                  <FaCheckCircle style={{ color: '#FFC107', marginTop: '2px', flexShrink: 0 }} size={12} />
+                  <p style={{ color: "#94a3b8", fontSize: "0.75rem", lineHeight: "1.4", margin: 0 }}>
+                    No realizamos devoluciones de dinero (reembolsos).
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'start' }}>
+                  <FaCheckCircle style={{ color: '#FFC107', marginTop: '2px', flexShrink: 0 }} size={12} />
+                  <p style={{ color: "#94a3b8", fontSize: "0.75rem", lineHeight: "1.4", margin: 0 }}>
+                    El costo de los envíos para cambios corre por cuenta del cliente.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.03)', border: '1px solid rgba(239, 68, 68, 0.1)', padding: '15px 22px', borderRadius: '12px' }}>
-            <h4 style={{ color: '#ef4444', margin: '0 0 8px 0', fontSize: '0.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FaExclamationTriangle size={12} /> PRODUCTOS CON DEFECTO
+          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.03)', border: '1px solid rgba(239, 68, 68, 0.1)', padding: '12px 18px', borderRadius: '12px' }}>
+            <h4 style={{ color: '#ef4444', margin: '0 0 6px 0', fontSize: '0.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FaExclamationTriangle size={11} /> PRODUCTOS CON DEFECTO DE FÁBRICA
             </h4>
-            <p style={{ color: '#cbd5e1', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
-              Reportar en las primeras <strong>48 horas</strong> post-entrega para que nosotros asumamos el costo del cambio.
-            </p>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'start' }}>
+              <FaCheckCircle style={{ color: '#ef4444', marginTop: '2px', flexShrink: 0 }} size={12} />
+              <p style={{ color: '#cbd5e1', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
+                Si el producto llegó defectuoso, repórtalo en las primeras <strong>48 horas</strong> post-entrega. En este caso, nosotros asumiremos el costo del envío.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '15px', display: 'flex', flexDirection: 'column' }}>
-          <label className="gm-checkbox-row" style={{ marginBottom: '20px' }}>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', display: 'flex', flexDirection: 'column' }}>
+          <label className="gm-checkbox-row" style={{ marginBottom: '15px' }}>
             <input 
               type="checkbox" 
               className="gm-checkbox-custom" 
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
+              style={{ width: '16px', height: '16px' }}
             />
-            <span className="gm-checkbox-label" style={{ fontSize: '0.8rem' }}>Acepto las políticas de cambios de productos de StreetCaps.</span>
+            <span className="gm-checkbox-label" style={{ fontSize: '0.75rem' }}>Acepto las políticas de cambios de productos de Gorras Medellín Caps.</span>
           </label>
 
-          <div style={{ display: "flex", gap: "12px", width: '100%' }}>
-            <button onClick={onClose} className="gm-btn-cancel-p" style={{ flex: 1, fontSize: '0.85rem' }}>CANCELAR</button>
+          <div style={{ display: "flex", gap: "10px", width: '100%' }}>
+            <button onClick={onClose} className="gm-btn-cancel-p" style={{ flex: 1, fontSize: '0.8rem', height: '36px' }}>CANCELAR</button>
             <button 
               onClick={onContinue} 
               className="gm-btn-confirm-p" 
-              style={{ flex: 1, fontSize: '0.85rem' }}
+              style={{ flex: 1, fontSize: '0.8rem', height: '36px' }}
               disabled={!accepted}
             >
               CONTINUAR
