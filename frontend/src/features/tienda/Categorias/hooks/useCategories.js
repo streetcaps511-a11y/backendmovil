@@ -16,22 +16,7 @@ const getCachedCats = () => {
   return cached?.data || [];
 };
 
-const imgPorCategoria = {
-  "NIKE 1.1": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762950188/gorrarojaymorada9_sufoqt.jpg",
-  "A/N 1.1": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762988183/negraconelescudo_zzh4l9.jpg",
-  "BEISBOLERA PREMIUM": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762910786/gorraazulblancoLA_rembf2.jpg",
-  "DIAMANTE IMPORTADA": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762914412/gorraconrosas_ko3326.jpg",
-  "EQUINAS-AGROPECUARIAS": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762916288/gorraazulcerdoverde_e10kc7.jpg",
-  "EXCLUSIVA 1.1": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762956762/gorranube_jrten0.jpg",
-  "MONASTERY 1.1": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762957919/gorramonasterygris_ij6ksq.jpg",
-  "MULTIMARCA": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762957956/gorrablancachromebeart_amqbro.jpg",
-  "PLANA CERRADA 1.1": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762988576/gorranegrajordan_arghad.jpg",
-  "PLANA IMPORTADA": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762995130/gorranegraAA_zkdg1e.jpg",
-  "PORTAGORRAS": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762994460/portagorras-1sencillo_xxe5hf.jpg",
-  "PREMIUM": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762987076/gorrahugoboss_ev6z54.jpg",
-  "camisetas": "https://res.cloudinary.com/dxc5qqsjd/image/upload/v1763002983/TALLA_M_3_youtflecha_hphfng.jpg",
-  "default": "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?auto=format&fit=crop&w=1000&q=80",
-};
+// Sin imágenes quemadas — todas las imágenes vienen de la base de datos (campo ImagenUrl)
 
 export const useCategories = () => {
   const { searchTerm: searchQuery } = useSearch();
@@ -101,17 +86,16 @@ export const useCategories = () => {
     });
   }, [searchQuery, categories]);
 
+  // Retorna la imagen directamente desde la base de datos (campo ImagenUrl)
+  // Sequelize lo serializa como imagenUrl (camelCase) en el JSON de respuesta
   const getCategoryImage = (cat) => {
-    if (cat.ImagenUrl) return cat.ImagenUrl;
-    const normalizedName = cat.Nombre?.toUpperCase();
-    return imgPorCategoria[normalizedName] || imgPorCategoria[cat.Nombre] || imgPorCategoria.default;
+    return cat.imagenUrl || cat.ImagenUrl || null;
   };
 
   return {
     searchQuery,
     sortedCategories,
     loading,
-    getCategoryImage,
-    defaultImg: imgPorCategoria.default
+    getCategoryImage
   };
 };

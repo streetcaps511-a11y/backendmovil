@@ -470,20 +470,24 @@ export const useDevolucionesLogic = () => {
     const lotMap = new Map();
 
     initialFiltered.forEach(d => {
-      if (d.noVenta) {
-        if (!lotMap.has(d.noVenta)) {
-          lotMap.set(d.noVenta, {
+      // Group ONLY if it's a bulk return (pedidoCompleto)
+      if (d.pedidoCompleto && d.noVenta) {
+        // Use idLote if available, otherwise fallback to noVenta
+        const groupKey = d.idLote || d.noVenta;
+        if (!lotMap.has(groupKey)) {
+          lotMap.set(groupKey, {
             ...d,
             isLot: true,
-            id: `ORD-${String(d.noVenta).toUpperCase()}`,
+            id: d.idLote || `ORD-${String(d.noVenta).toUpperCase()}`,
             noVentaReal: d.noVenta,
             items: [d],
-            productoOriginal: `📦 ORDEN COMPLETA: ${d.noVenta}`,
+            // Removed the manual 'ORDEN COMPLETA' override so the column render handles it
+            // but we keep the sum of the prices
             precio: parseFloat(d.precio || 0)
           });
-          grouped.push(lotMap.get(d.noVenta));
+          grouped.push(lotMap.get(groupKey));
         } else {
-          const lot = lotMap.get(d.noVenta);
+          const lot = lotMap.get(groupKey);
           lot.items.push(d);
           lot.precio += parseFloat(d.precio || 0);
         }

@@ -4,11 +4,11 @@
    Recibe eventos de la UI y se comunica con los Servicios API. */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth, useCart } from '../../../shared/contexts';
 import { PAYMENT_METHODS } from '../components/CheckoutModal';
 import * as cartApi from '../services/cartApi';
-import * as profileApi from '../../profile/services/profileApi';
+import * as profileApi from '../../Profile/services/profileApi';
 
 export const useCartPage = () => {
   const { user } = useAuth();
@@ -41,6 +41,7 @@ export const useCartPage = () => {
   const [showErrors, setShowErrors] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Asegurar que se pre-llene si el usuario se carga después del montaje
   useEffect(() => {
@@ -145,6 +146,13 @@ export const useCartPage = () => {
   };
 
   const handleFinishPurchase = () => {
+    // Validar que el usuario esté autenticado
+    if (!user) {
+      setCenterAlert({ visible: true, message: 'Debes iniciar sesión para continuar con tu compra' });
+      setTimeout(() => navigate('/login', { state: { from: location }, replace: true }), 1500);
+      return;
+    }
+    
     if (cartItems.length === 0) {
       setCenterAlert({ visible: true, message: 'El carrito está vacío' });
       return;
@@ -302,11 +310,17 @@ export const useCartPage = () => {
     getProductName,
     getProductPrice,
     getImageUrl: (item) => {
-      if (!item) return 'https://via.placeholder.com/300x300?text=Sin+Imagen';
-      const img = item.imagen || (Array.isArray(item.imagenes) ? item.imagenes[0] : null);
-      if (!img) return 'https://via.placeholder.com/300x300?text=Sin+Imagen';
-      if (img.startsWith('http')) return img;
-      return `https://urlmovil-1.onrender.com${img}`;
+      let img = item?.imagen || item?.imagenes?.[0] || item?.image || '';
+      if (typeof img === 'string') {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        if (img.startsWith('/uploads')) {
+          return `${baseUrl}${img}`;
+        }
+        if (img.includes('urlmovil-1.onrender.com')) {
+          return img.replace('https://urlmovil-1.onrender.com', baseUrl);
+        }
+      }
+      return img || 'https://res.cloudinary.com/dxc5qqsjd/image/upload/v1762910780/gorraazultodaNY_cyfchf.jpg';
     },
     handleImageError: (e) => {
       e.target.src = 'https://via.placeholder.com/300x300?text=No+Imagen';

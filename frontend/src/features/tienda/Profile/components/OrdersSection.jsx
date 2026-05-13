@@ -428,7 +428,7 @@ const OrdersSection = ({
               </div>
 
 
-              {(String(selectedOrder.status).toUpperCase() === 'COMPLETADA' || selectedOrder.status === 'Entregado') && (selectedOrder.statusenvio === 'Finalizado' || selectedOrder.statusenvio === 'Entregado') && !hasExistingReturn && (
+              {(String(selectedOrder.status).toUpperCase() === 'COMPLETADA' || String(selectedOrder.status).toUpperCase() === 'ENTREGADO') && (selectedOrder.statusenvio === 'Finalizado' || selectedOrder.statusenvio === 'Entregado' || String(selectedOrder.status).toUpperCase() === 'ENTREGADO') && !hasExistingReturn && (
                 <button 
                   onClick={() => handleBulkReturnClick(selectedOrder)}
                   style={{
@@ -562,7 +562,7 @@ const OrdersSection = ({
                       ${( (typeof i.price === 'string' ? parseInt(i.price.replace(/[^0-9]/g, '')) : i.price) * (parseInt(i.qty) || 1) ).toLocaleString('es-CO')}
                     </span>
                   </div>
-                  {(selectedOrder.status === "Aprobado" || selectedOrder.status === "Completada") && (selectedOrder.statusenvio === 'Finalizado' || selectedOrder.statusenvio === 'Entregado') && (
+                  {(String(selectedOrder.status).toUpperCase() === "APROBADO" || String(selectedOrder.status).toUpperCase() === "COMPLETADA" || String(selectedOrder.status).toUpperCase() === "ENTREGADO" || selectedOrder.status === "Entregado") && (selectedOrder.statusenvio === 'Finalizado' || selectedOrder.statusenvio === 'Entregado' || selectedOrder.status === 'Entregado') && (
                     !allReturns.some(r => 
                       Number(r.rawOrderId) === Number(selectedOrder.id.replace('PED-', '')) && 
                       Number(r.productId) === Number(i.id)

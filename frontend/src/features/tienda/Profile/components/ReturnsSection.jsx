@@ -568,7 +568,7 @@ const ReturnsSection = ({
                     className={`gm-select-minimalist ${returnErrors.replacement ? 'error' : ''}`}
                     style={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 400, fontSize: '1rem', width: '100%' }}
                   >
-                    <option value="">Seleccionar reemplazo...</option>
+                    <option value="">Opcional: Ningún reemplazo</option>
                     {initialProducts
                       ?.filter(p => {
                         const currentPrice = Math.floor(Number(p.precio));

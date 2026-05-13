@@ -1,40 +1,56 @@
-/* === PÁGINA PRINCIPAL === 
-   Este componente es la interfaz visual principal de la ruta. 
+/* === PÁGINA PRINCIPAL ===
+   Este componente es la interfaz visual principal de la ruta.
    Se encarga de dibujar el HTML/JSX e invoca el Hook para obtener todas las funciones y estados necesarios. */
 
-import '../style/index.css';
-import React, { useState, useEffect } from 'react';
-import { 
-  FaArrowLeft, 
+import "../style/index.css";
+import React, { useState, useEffect } from "react";
+import {
+  FaArrowLeft,
   FaArrowRight,
-  FaUser, 
-  FaExchangeAlt, 
-  FaCamera, 
-  FaTrash, 
-  FaImage, 
-  FaCheckCircle, 
+  FaUser,
+  FaExchangeAlt,
+  FaCamera,
+  FaTrash,
+  FaImage,
+  FaCheckCircle,
   FaTimesCircle,
-  FaEye
-} from 'react-icons/fa';
-import { EntityTable, Alert, SearchInput, CustomPagination, StatusPill, SearchSelect } from '../../../shared/services';
-import { useDevolucionesLogic } from '../hooks/useDevolucionesLogic';
-import StatusFilter from '../components/StatusFilter';
+  FaEye,
+} from "react-icons/fa";
+import {
+  EntityTable,
+  Alert,
+  SearchInput,
+  CustomPagination,
+  StatusPill,
+  SearchSelect,
+} from "../../../shared/services";
+import { useDevolucionesLogic } from "../hooks/useDevolucionesLogic";
+import StatusFilter from "../components/StatusFilter";
 
 const DevolucionesPage = () => {
   const {
     modoVista,
     availableStatuses,
-    clientes, productos,
-    searchTerm, setSearchTerm,
-    filterStatus, setFilterStatus,
-    currentPage, setCurrentPage,
+    clientes,
+    productos,
+    searchTerm,
+    setSearchTerm,
+    filterStatus,
+    setFilterStatus,
+    currentPage,
+    setCurrentPage,
     itemsPerPage,
-    alert, setAlert,
+    alert,
+    setAlert,
     errors,
-    devolucionViendo, setDevolucionViendo,
-    isRejecting, setIsRejecting,
-    rejectionReason, setRejectionReason,
-    formData, setFormData,
+    devolucionViendo,
+    setDevolucionViendo,
+    isRejecting,
+    setIsRejecting,
+    rejectionReason,
+    setRejectionReason,
+    formData,
+    setFormData,
     loadingVentas,
     ventasCliente,
     productosVenta,
@@ -46,50 +62,86 @@ const DevolucionesPage = () => {
     handleImageUpload,
     handleSubmit,
     updateStatus,
-    filtered
+    filtered,
   } = useDevolucionesLogic();
 
   // Estados locales para acciones desde la tabla
   const [devParaAprobar, setDevParaAprobar] = React.useState(null);
   const [devParaRechazar, setDevParaRechazar] = React.useState(null);
-  const [motivoRechazoTabla, setMotivoRechazoTabla] = React.useState('');
-  const [detalleModal, setDetalleModal] = React.useState({ show: false, group: null });
+  const [motivoRechazoTabla, setMotivoRechazoTabla] = React.useState("");
 
-  const closeDetalleModal = () => setDetalleModal({ show: false, group: null });
-  const openDetalleModal = (group) => setDetalleModal({ show: true, group });
 
   // Reset scroll when switching views
   useEffect(() => {
     window.scrollTo(0, 0);
-    const wrappers = document.querySelectorAll('.devoluciones-container, .yellow-scrollbar');
-    wrappers.forEach(w => w.scrollTop = 0);
+    const wrappers = document.querySelectorAll(
+      ".devoluciones-container, .yellow-scrollbar",
+    );
+    wrappers.forEach((w) => (w.scrollTop = 0));
   }, [modoVista, devolucionViendo]);
 
   const columns = [
-    { header: 'N° de devolución', field: 'id', render: (item) => <span className="dev-id-text">{item.id}</span> },
-    { header: 'Cliente', field: 'cliente', render: (item) => <span className="dev-client-text">{item.cliente}</span> },
-    { header: 'Producto Original', field: 'productoOriginal', render: (item) => <span className="dev-product-text">{item.productoOriginal}</span> },
-    { header: 'Valor', field: 'precio', render: (item) => <span className="dev-price-text">${item.precio.toLocaleString()}</span> },
-    { header: 'Estado', field: 'estado', render: (item) => <StatusPill status={item.estado} /> }
+    {
+      header: "N° de devolución",
+      field: "noDevolucion",
+      render: (item) => {
+        let num = Number(item.noDevolucion || item.id);
+        if (num < 10000) num += 10000;
+        return <span className="dev-id-text">DEV-{num}</span>;
+      },
+    },
+    {
+      header: "Cliente",
+      field: "cliente",
+      render: (item) => <span className="dev-client-text">{item.cliente}</span>,
+    },
+    {
+      header: "Producto/Orden",
+      field: "productoOriginal",
+      render: (item) => {
+        if (item.pedidoCompleto) {
+          const num = item.noVenta || item.idVenta || "";
+          return <span className="dev-product-text">Orden Completa #{num}</span>;
+        }
+        return <span className="dev-product-text">{item.productoOriginal}</span>;
+      },
+    },
+    {
+      header: "Valor",
+      field: "precio",
+      render: (item) => (
+        <span className="dev-price-text">${item.precio.toLocaleString()}</span>
+      ),
+    },
+    {
+      header: "Estado",
+      field: "estado",
+      render: (item) => <StatusPill status={item.estado} />,
+    },
   ];
 
   return (
     <React.Fragment>
       {alert.show && (
-        <Alert 
-          message={alert.message} 
-          type={alert.type} 
-          onClose={() => setAlert({ show: false, message: '', type: 'success' })} 
+        <Alert
+          message={alert.message}
+          type={alert.type}
+          onClose={() =>
+            setAlert({ show: false, message: "", type: "success" })
+          }
         />
       )}
-      
+
       <div className="devoluciones-container">
         {/* HEADER */}
         <div className="devoluciones-header">
           <div className="devoluciones-header-top">
             <div className="devoluciones-header-left">
               {(modoVista === "formulario" || modoVista === "detalle") && (
-                <button onClick={mostrarLista} className="devoluciones-btn-back">
+                <button
+                  onClick={mostrarLista}
+                  className="devoluciones-btn-back"
+                >
                   <FaArrowLeft size={16} />
                 </button>
               )}
@@ -100,22 +152,28 @@ const DevolucionesPage = () => {
                   {modoVista === "detalle" && "Detalle de Devolución"}
                 </h1>
                 <p className="devoluciones-subtitle">
-                   {modoVista === "lista" && "Gestión de garantías y cambios de producto"}
-                   {modoVista === "formulario" && "Ingrese los datos del producto y la evidencia necesaria"}
-                   {modoVista === "detalle" && "Revisión de solicitud de devolución"}
+                  {modoVista === "lista" &&
+                    "Gestión de garantías y cambios de producto"}
+                  {modoVista === "formulario" &&
+                    "Ingrese los datos del producto y la evidencia necesaria"}
+                  {modoVista === "detalle" &&
+                    "Revisión de solicitud de devolución"}
                 </p>
               </div>
             </div>
 
             {modoVista === "lista" && (
-              <button onClick={mostrarFormulario} className="devoluciones-btn-register">
+              <button
+                onClick={mostrarFormulario}
+                className="devoluciones-btn-register"
+              >
                 Registrar Devolución
               </button>
             )}
 
             {modoVista === "formulario" && (
-              <button 
-                onClick={handleSubmit} 
+              <button
+                onClick={handleSubmit}
                 className="devoluciones-btn-submit"
                 id="btn-save-devolucion"
               >
@@ -126,18 +184,30 @@ const DevolucionesPage = () => {
         </div>
 
         {modoVista === "lista" && (
-          <div className="devoluciones-search-bar" style={{ display: 'flex', alignItems: 'center', marginBottom: '0px', marginTop: '5px' }}>
-            <div style={{ flex: 1, marginRight: '8px' }}>
+          <div
+            className="devoluciones-search-bar"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "0px",
+              marginTop: "5px",
+            }}
+          >
+            <div style={{ flex: 1, marginRight: "8px" }}>
               <SearchInput
                 value={searchTerm}
                 onChange={setSearchTerm}
                 placeholder="Buscar por cliente, ID o producto..."
-                onClear={() => setSearchTerm('')}
+                onClear={() => setSearchTerm("")}
                 fullWidth={true}
               />
             </div>
             <div className="devoluciones-filter-container">
-              <StatusFilter filterStatus={filterStatus} onFilterSelect={setFilterStatus} statuses={availableStatuses} />
+              <StatusFilter
+                filterStatus={filterStatus}
+                onFilterSelect={setFilterStatus}
+                statuses={availableStatuses}
+              />
             </div>
           </div>
         )}
@@ -147,21 +217,30 @@ const DevolucionesPage = () => {
           <div className="devoluciones-main-content">
             <div className="devoluciones-table-wrapper">
               <EntityTable
-                entities={filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
+                entities={filtered.slice(
+                  (currentPage - 1) * itemsPerPage,
+                  currentPage * itemsPerPage,
+                )}
                 columns={columns}
                 onView={mostrarDetalle}
                 onApprove={(row) => setDevParaAprobar(row)}
                 onReject={(row) => setDevParaRechazar(row)}
                 moduleType="devoluciones"
-                style={{ border: 'none' }}
+                style={{ border: "none" }}
                 headerStyle={{
-                  padding: '6px 4px', textAlign: 'left', fontWeight: '600',
-                  fontSize: '11px', color: '#F5C81B', borderBottom: '1px solid #F5C81B',
-                  backgroundColor: '#151822',
+                  padding: "6px 4px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  fontSize: "11px",
+                  color: "#F5C81B",
+                  borderBottom: "1px solid #F5C81B",
+                  backgroundColor: "#151822",
                 }}
                 rowStyle={{
-                  padding: '4px 0', border: 'none', borderBottom: 'none',
-                  backgroundColor: '#000'
+                  padding: "4px 0",
+                  border: "none",
+                  borderBottom: "none",
+                  backgroundColor: "#000",
                 }}
               />
             </div>
@@ -170,7 +249,9 @@ const DevolucionesPage = () => {
               totalPages={Math.ceil(filtered.length / itemsPerPage) || 1}
               onPageChange={setCurrentPage}
               totalItems={filtered.length}
-              showingStart={filtered.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+              showingStart={
+                filtered.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0
+              }
               endIndex={Math.min(currentPage * itemsPerPage, filtered.length)}
               itemsName="devoluciones"
             />
@@ -188,19 +269,24 @@ const DevolucionesPage = () => {
                 <div className="dev-card-body">
                   <div className="dev-form-row">
                     <div className="dev-form-group client">
-                      <label className="dev-field-label">CLIENTE <span className="required">*</span></label>
+                      <label className="dev-field-label">
+                        CLIENTE <span className="required">*</span>
+                      </label>
                       <SearchSelect
                         options={clientes}
-                        selectedItem={clientes.find(c => String(c.id) === String(formData.idCliente))}
+                        selectedItem={clientes.find(
+                          (c) => String(c.id) === String(formData.idCliente),
+                        )}
                         onSelect={(client) => {
-                          const cid = client?.id || client?.IdCliente || '';
-                          setFormData({ 
-                            ...formData, 
+                          const cid = client?.id || client?.IdCliente || "";
+                          setFormData({
+                            ...formData,
                             idCliente: cid,
-                            cliente: client?.Nombre || client?.nombreCompleto || '',
-                            productoOriginalId: '', // Reset products when client changes
-                            idVenta: '',
-                            productoCambioId: ''
+                            cliente:
+                              client?.Nombre || client?.nombreCompleto || "",
+                            productoOriginalId: "", // Reset products when client changes
+                            idVenta: "",
+                            productoCambioId: "",
                           });
                         }}
                         placeholder="Buscar por nombre, documento o correo..."
@@ -208,66 +294,148 @@ const DevolucionesPage = () => {
                         filterFn={(c, term) => {
                           const t = term.toLowerCase();
                           return (
-                            (c.nombreCompleto || c.Nombre || '').toLowerCase().includes(t) ||
-                            (c.numeroDocumento || c.Documento || c.numDocumento || '').toLowerCase().includes(t) ||
-                            (c.email || c.Email || '').toLowerCase().includes(t)
+                            (c.nombreCompleto || c.Nombre || "")
+                              .toLowerCase()
+                              .includes(t) ||
+                            (
+                              c.numeroDocumento ||
+                              c.Documento ||
+                              c.numDocumento ||
+                              ""
+                            )
+                              .toLowerCase()
+                              .includes(t) ||
+                            (c.email || c.Email || "").toLowerCase().includes(t)
                           );
                         }}
                         renderOption={(c) => (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <span style={{ fontWeight: 700, color: '#fff', fontSize: '13px' }}>{c.nombreCompleto || c.Nombre}</span>
-                            <div style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#94a3b8' }}>
-                              <span>Doc: {c.numeroDocumento || c.Documento || 'N/A'}</span>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "2px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontWeight: 700,
+                                color: "#fff",
+                                fontSize: "13px",
+                              }}
+                            >
+                              {c.nombreCompleto || c.Nombre}
+                            </span>
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "8px",
+                                fontSize: "11px",
+                                color: "#94a3b8",
+                              }}
+                            >
+                              <span>
+                                Doc: {c.numeroDocumento || c.Documento || "N/A"}
+                              </span>
                               <span>•</span>
-                              <span>{c.email || c.Email || 'Sin Correo'}</span>
+                              <span>{c.email || c.Email || "Sin Correo"}</span>
                             </div>
                           </div>
                         )}
                       />
                     </div>
                     <div className="dev-form-group sale">
-                      <label className="dev-field-label">VENTA RELACIONADA <span className="required">*</span></label>
+                      <label className="dev-field-label">
+                        VENTA RELACIONADA <span className="required">*</span>
+                      </label>
                       <SearchSelect
                         options={ventasCliente}
-                        selectedItem={ventasCliente.find(v => String(v.id || v.IdVenta) === String(formData.idVenta))}
+                        selectedItem={ventasCliente.find(
+                          (v) =>
+                            String(v.id || v.IdVenta) ===
+                            String(formData.idVenta),
+                        )}
                         onSelect={(sale) => {
-                          setFormData({ 
-                            ...formData, 
-                            idVenta: sale?.id || sale?.IdVenta || '',
-                            productoOriginalId: '', // Reset if sale changes
-                            productoCambioId: ''
+                          setFormData({
+                            ...formData,
+                            idVenta: sale?.id || sale?.IdVenta || "",
+                            productoOriginalId: "", // Reset if sale changes
+                            productoCambioId: "",
                           });
                         }}
-                        placeholder={!formData.idCliente ? "Primero..." : (loadingVentas ? "Cargando..." : "Venta/Recibo...")}
+                        placeholder={
+                          !formData.idCliente
+                            ? "Primero..."
+                            : loadingVentas
+                              ? "Cargando..."
+                              : "Venta/Recibo..."
+                        }
                         disabled={!formData.idCliente || loadingVentas}
                         error={errors.idVenta}
                         renderOption={(v) => (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span style={{ fontWeight: 700, color: '#F5C81B', fontSize: '13px' }}>ORDEN #{v.id || v.IdVenta}</span>
-                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                                Fecha: {v.fecha || v.Fecha || v.FechaVenta || 'N/A'}
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: "15px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "2px",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  color: "#F5C81B",
+                                  fontSize: "13px",
+                                }}
+                              >
+                                ORDEN #{v.id || v.IdVenta}
+                              </span>
+                              <span
+                                style={{ fontSize: "11px", color: "#94a3b8" }}
+                              >
+                                Fecha:{" "}
+                                {v.fecha || v.Fecha || v.FechaVenta || "N/A"}
                               </span>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>
-                                ${parseFloat(v.total || v.Total || 0).toLocaleString()}
+                            <div style={{ textAlign: "right" }}>
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  fontWeight: 700,
+                                  color: "#fff",
+                                }}
+                              >
+                                $
+                                {parseFloat(
+                                  v.total || v.Total || 0,
+                                ).toLocaleString()}
                               </span>
                             </div>
                           </div>
                         )}
-                        filterFn={(v, term) => String(v.id || v.IdVenta).includes(term)}
+                        filterFn={(v, term) =>
+                          String(v.id || v.IdVenta).includes(term)
+                        }
                       />
                     </div>
                   </div>
 
                   <div className="dev-form-group">
-                    <label className="dev-field-label">MOTIVO DE DEVOLUCIÓN <span className="required">*</span></label>
+                    <label className="dev-field-label">
+                      MOTIVO DE DEVOLUCIÓN <span className="required">*</span>
+                    </label>
                     <textarea
                       value={formData.motivo}
-                      onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, motivo: e.target.value })
+                      }
                       placeholder="Describa el motivo detallado..."
-                      className={`dev-field-textarea ${errors.motivo ? 'has-error' : ''}`}
+                      className={`dev-field-textarea ${errors.motivo ? "has-error" : ""}`}
                     />
                   </div>
                 </div>
@@ -285,60 +453,117 @@ const DevolucionesPage = () => {
                       type="checkbox"
                       checked={formData.mismoModelo}
                       onChange={(e) => {
-                        setFormData({ 
-                          ...formData, 
+                        setFormData({
+                          ...formData,
                           mismoModelo: e.target.checked,
-                          productoCambioId: '' 
+                          productoCambioId: "",
                         });
                       }}
                     />
                     <span className="dev-checkmark"></span>
                   </label>
                 </div>
-                
+
                 <div className="dev-card-body products">
                   <div className="dev-form-row products">
                     <div className="dev-form-group product-main">
-                      <label className="dev-field-label return">PRODUCTO A DEVOLVER <span className="required">*</span></label>
+                      <label className="dev-field-label return">
+                        PRODUCTO A DEVOLVER <span className="required">*</span>
+                      </label>
                       <SearchSelect
                         options={productosVenta}
-                        selectedItem={productosVenta.find(p => String(p._tempId || p.id) === String(formData.productoOriginalId))}
+                        selectedItem={productosVenta.find(
+                          (p) =>
+                            String(p._tempId || p.id) ===
+                            String(formData.productoOriginalId),
+                        )}
                         onSelect={(prod) => {
-                          setFormData({ 
-                            ...formData, 
-                            productoOriginalId: prod?._tempId || prod?.id || '',
-                            idVenta: prod?.idVenta || formData.idVenta, 
-                            productoCambioId: '' 
+                          setFormData({
+                            ...formData,
+                            productoOriginalId: prod?._tempId || prod?.id || "",
+                            idVenta: prod?.idVenta || formData.idVenta,
+                            productoCambioId: "",
                           });
                         }}
-                        placeholder={!formData.idCliente ? "Primero..." : (loadingVentas ? "Cargando..." : "Buscar producto...")}
+                        placeholder={
+                          !formData.idCliente
+                            ? "Primero..."
+                            : loadingVentas
+                              ? "Cargando..."
+                              : "Buscar producto..."
+                        }
                         disabled={!formData.idCliente || loadingVentas}
                         error={errors.prodOrig}
                         filterFn={(p, term) => {
                           const t = term.toLowerCase();
-                          return (p.nombre || p.Nombre || '').toLowerCase().includes(t);
+                          return (p.nombre || p.Nombre || "")
+                            .toLowerCase()
+                            .includes(t);
                         }}
                         renderOption={(p) => {
-                          const imgPath = (p.imagenes && p.imagenes[0]) || (p.Imagenes && p.Imagenes[0]) || null;
-                          const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                          const imgSrc = imgPath 
-                            ? (imgPath.startsWith('http') ? imgPath : `${baseUrl}${imgPath}`) 
-                            : '/placeholder.png';
-                          
+                          const imgPath =
+                            (p.imagenes && p.imagenes[0]) ||
+                            (p.Imagenes && p.Imagenes[0]) ||
+                            null;
+                          const baseUrl =
+                            import.meta.env.VITE_API_URL ||
+                            "http://localhost:3000";
+                          const imgSrc = imgPath
+                            ? imgPath.startsWith("http")
+                              ? imgPath
+                              : `${baseUrl}${imgPath}`
+                            : "/placeholder.png";
+
                           return (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '38px', height: '38px', background: '#1e293b', borderRadius: '6px', overflow: 'hidden' }}>
-                                <img 
-                                  src={imgSrc} 
-                                  alt="" 
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  onError={(e) => { e.target.src = '/placeholder.png'; }}
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: "38px",
+                                  height: "38px",
+                                  background: "#1e293b",
+                                  borderRadius: "6px",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <img
+                                  src={imgSrc}
+                                  alt=""
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                  onError={(e) => {
+                                    e.target.src = "/placeholder.png";
+                                  }}
                                 />
                               </div>
-                              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ fontWeight: 600, color: '#fff', fontSize: '13px' }}>{p.nombre || p.Nombre}</span>
-                                <span style={{ fontSize: '11px', color: '#10B981' }}>
-                                  ${parseFloat(p.precio || 0).toLocaleString()} • Talla: {p.tallaComprada || 'N/A'}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontWeight: 600,
+                                    color: "#fff",
+                                    fontSize: "13px",
+                                  }}
+                                >
+                                  {p.nombre || p.Nombre}
+                                </span>
+                                <span
+                                  style={{ fontSize: "11px", color: "#10B981" }}
+                                >
+                                  ${parseFloat(p.precio || 0).toLocaleString()}{" "}
+                                  • Talla: {p.tallaComprada || "N/A"}
                                 </span>
                               </div>
                             </div>
@@ -353,41 +578,109 @@ const DevolucionesPage = () => {
                           <FaExchangeAlt />
                         </div>
                         <div className="dev-form-group product-main">
-                          <label className="dev-field-label replace">PRODUCTO DE REEMPLAZO <span className="required">*</span></label>
+                          <label className="dev-field-label replace">
+                            PRODUCTO DE REEMPLAZO{" "}
+                            <span className="required">*</span>
+                          </label>
                           <SearchSelect
                             options={productosMismoPrecio}
-                            selectedItem={productosMismoPrecio.find(p => String(p.id || p.IdProducto) === String(formData.productoCambioId))}
+                            selectedItem={productosMismoPrecio.find(
+                              (p) =>
+                                String(p.id || p.IdProducto) ===
+                                String(formData.productoCambioId),
+                            )}
                             onSelect={(prod) => {
-                              setFormData({ ...formData, productoCambioId: prod?.id || prod?.IdProducto || '' });
+                              setFormData({
+                                ...formData,
+                                productoCambioId:
+                                  prod?.id || prod?.IdProducto || "",
+                              });
                             }}
-                            placeholder={!formData.productoOriginalId ? "Primero..." : "Buscar..."}
+                            placeholder={
+                              !formData.productoOriginalId
+                                ? "Primero..."
+                                : "Buscar..."
+                            }
                             disabled={!formData.productoOriginalId}
                             error={errors.prodCambio || errors.price_mismatch}
                             filterFn={(p, term) => {
                               const t = term.toLowerCase();
-                              return (p.nombre || p.Nombre || '').toLowerCase().includes(t);
+                              return (p.nombre || p.Nombre || "")
+                                .toLowerCase()
+                                .includes(t);
                             }}
                             renderOption={(p) => {
-                              const imgPath = (p.imagenes && p.imagenes[0]) || (p.Imagenes && p.Imagenes[0]) || null;
-                              const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                              const imgSrc = imgPath 
-                                ? (imgPath.startsWith('http') ? imgPath : `${baseUrl}${imgPath}`) 
-                                : '/placeholder.png';
-                              
+                              const imgPath =
+                                (p.imagenes && p.imagenes[0]) ||
+                                (p.Imagenes && p.Imagenes[0]) ||
+                                null;
+                              const baseUrl =
+                                import.meta.env.VITE_API_URL ||
+                                "http://localhost:3000";
+                              const imgSrc = imgPath
+                                ? imgPath.startsWith("http")
+                                  ? imgPath
+                                  : `${baseUrl}${imgPath}`
+                                : "/placeholder.png";
+
                               return (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <div style={{ width: '38px', height: '38px', background: '#1e293b', borderRadius: '6px', overflow: 'hidden' }}>
-                                    <img 
-                                      src={imgSrc} 
-                                      alt="" 
-                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                      onError={(e) => { e.target.src = '/placeholder.png'; }}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: "38px",
+                                      height: "38px",
+                                      background: "#1e293b",
+                                      borderRadius: "6px",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <img
+                                      src={imgSrc}
+                                      alt=""
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                      }}
+                                      onError={(e) => {
+                                        e.target.src = "/placeholder.png";
+                                      }}
                                     />
                                   </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <span style={{ fontWeight: 600, color: '#fff', fontSize: '13px' }}>{p.nombre || p.Nombre}</span>
-                                    <span style={{ fontSize: '11px', color: '#F5C81B' }}>
-                                      ${(parseFloat(p.precio || p.Precio || p.precioVenta || 0)).toLocaleString()}
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontWeight: 600,
+                                        color: "#fff",
+                                        fontSize: "13px",
+                                      }}
+                                    >
+                                      {p.nombre || p.Nombre}
+                                    </span>
+                                    <span
+                                      style={{
+                                        fontSize: "11px",
+                                        color: "#F5C81B",
+                                      }}
+                                    >
+                                      $
+                                      {parseFloat(
+                                        p.precio ||
+                                          p.Precio ||
+                                          p.precioVenta ||
+                                          0,
+                                      ).toLocaleString()}
                                     </span>
                                   </div>
                                 </div>
@@ -395,7 +688,9 @@ const DevolucionesPage = () => {
                             }}
                           />
                           {errors.price_mismatch && (
-                            <p className="dev-price-error">⚠ Precios desiguales</p>
+                            <p className="dev-price-error">
+                              ⚠ Precios desiguales
+                            </p>
                           )}
                         </div>
                       </>
@@ -414,10 +709,13 @@ const DevolucionesPage = () => {
             <div className="devoluciones-registration-column">
               <div className="devoluciones-registration-card full-height">
                 <h3 className="devoluciones-card-title">
-                  <FaCamera className="card-icon" /> EVIDENCIA FOTOGRÁFICA <span className="required">*</span>
+                  <FaCamera className="card-icon" /> EVIDENCIA FOTOGRÁFICA{" "}
+                  <span className="required">*</span>
                 </h3>
-                
-                <div className={`dev-evidence-dropzone ${errors.evidencia ? 'has-error' : ''}`}>
+
+                <div
+                  className={`dev-evidence-dropzone ${errors.evidencia ? "has-error" : ""}`}
+                >
                   <div className="dev-evidence-content">
                     {(formData.evidencia || formData.evidencia2) && (
                       <div className="dev-evidence-viewer">
@@ -425,42 +723,68 @@ const DevolucionesPage = () => {
                           formData.evidencia ? (
                             <div className="dev-preview-wrapper">
                               <img src={formData.evidencia} alt="Evidencia 1" />
-                              <button onClick={() => setFormData({ ...formData, evidencia: null })} className="dev-btn-delete">
+                              <button
+                                onClick={() =>
+                                  setFormData({ ...formData, evidencia: null })
+                                }
+                                className="dev-btn-delete"
+                              >
                                 <FaTrash />
                               </button>
                             </div>
                           ) : (
-                            <div className="dev-empty-preview" onClick={() => document.getElementById('file-1').click()}>
+                            <div
+                              className="dev-empty-preview"
+                              onClick={() =>
+                                document.getElementById("file-1").click()
+                              }
+                            >
                               <FaImage className="empty-icon" />
                               <p>Vista Frontal del Producto</p>
-                              <span className="dev-upload-link">SUBIR IMAGEN</span>
+                              <span className="dev-upload-link">
+                                SUBIR IMAGEN
+                              </span>
                             </div>
                           )
+                        ) : formData.evidencia2 ? (
+                          <div className="dev-preview-wrapper">
+                            <img src={formData.evidencia2} alt="Evidencia 2" />
+                            <button
+                              onClick={() =>
+                                setFormData({ ...formData, evidencia2: null })
+                              }
+                              className="dev-btn-delete"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
                         ) : (
-                          formData.evidencia2 ? (
-                            <div className="dev-preview-wrapper">
-                              <img src={formData.evidencia2} alt="Evidencia 2" />
-                              <button onClick={() => setFormData({ ...formData, evidencia2: null })} className="dev-btn-delete">
-                                <FaTrash />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="dev-empty-preview" onClick={() => document.getElementById('file-2').click()}>
-                              <FaImage className="empty-icon" />
-                              <p>Vista Posterior o Extra</p>
-                              <span className="dev-upload-link">SUBIR IMAGEN</span>
-                            </div>
-                          )
+                          <div
+                            className="dev-empty-preview"
+                            onClick={() =>
+                              document.getElementById("file-2").click()
+                            }
+                          >
+                            <FaImage className="empty-icon" />
+                            <p>Vista Posterior o Extra</p>
+                            <span className="dev-upload-link">
+                              SUBIR IMAGEN
+                            </span>
+                          </div>
                         )}
-                        
+
                         <div className="dev-viewer-controls">
-                          <button 
-                            className={`dev-dot ${formData.viewingEvidencia === 1 ? 'active' : ''}`}
-                            onClick={() => setFormData({ ...formData, viewingEvidencia: 1 })}
+                          <button
+                            className={`dev-dot ${formData.viewingEvidencia === 1 ? "active" : ""}`}
+                            onClick={() =>
+                              setFormData({ ...formData, viewingEvidencia: 1 })
+                            }
                           />
-                          <button 
-                            className={`dev-dot ${formData.viewingEvidencia === 2 ? 'active' : ''}`}
-                            onClick={() => setFormData({ ...formData, viewingEvidencia: 2 })}
+                          <button
+                            className={`dev-dot ${formData.viewingEvidencia === 2 ? "active" : ""}`}
+                            onClick={() =>
+                              setFormData({ ...formData, viewingEvidencia: 2 })
+                            }
                           />
                         </div>
                       </div>
@@ -469,23 +793,25 @@ const DevolucionesPage = () => {
                     {!formData.evidencia && !formData.evidencia2 && (
                       <div className="dev-drag-drop-area">
                         <FaImage className="drag-icon" />
-                        <p className="drag-text">Arrastra una imagen o selecciona un archivo</p>
+                        <p className="drag-text">
+                          Arrastra una imagen o selecciona un archivo
+                        </p>
                         <label className="dev-btn-upload-premium">
                           SUBIR IMAGEN
-                          <input 
+                          <input
                             id="file-1"
-                            type="file" 
-                            accept="image/*" 
-                            onChange={(e) => handleImageUpload(e, 1)} 
-                            style={{ display: 'none' }} 
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, 1)}
+                            style={{ display: "none" }}
                           />
                         </label>
-                        <input 
+                        <input
                           id="file-2"
-                          type="file" 
-                          accept="image/*" 
-                          onChange={(e) => handleImageUpload(e, 2)} 
-                          style={{ display: 'none' }} 
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 2)}
+                          style={{ display: "none" }}
                         />
                       </div>
                     )}
@@ -501,11 +827,31 @@ const DevolucionesPage = () => {
             <div className="devoluciones-registration-column">
               {/* CARD 1: DATOS GENERALES */}
               <div className="devoluciones-registration-card">
-                <h3 className="devoluciones-card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <FaUser className="card-icon" /> DATOS GENERALES DE LA SOLICITUD
+                <h3
+                  className="devoluciones-card-title"
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
+                    <FaUser className="card-icon" /> DATOS GENERALES DE LA
+                    SOLICITUD
                   </div>
-                  <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#94a3b8",
+                      fontWeight: 600,
+                    }}
+                  >
                     FECHA: {devolucionViendo?.fecha}
                   </span>
                 </h3>
@@ -513,21 +859,32 @@ const DevolucionesPage = () => {
                   <div className="dev-form-row">
                     <div className="dev-form-group client" style={{ flex: 1 }}>
                       <label className="dev-field-label">CLIENTE</label>
-                      <div className="form-field-display">{devolucionViendo?.cliente}</div>
+                      <div className="form-field-display">
+                        {devolucionViendo?.cliente}
+                      </div>
                     </div>
                     <div className="dev-form-group address" style={{ flex: 1 }}>
                       <label className="dev-field-label">DIRECCIÓN</label>
-                      <div className="form-field-display">{devolucionViendo?.direccion}</div>
+                      <div className="form-field-display">
+                        {devolucionViendo?.direccion}
+                      </div>
                     </div>
                     <div className="dev-form-group sale" style={{ flex: 1 }}>
                       <label className="dev-field-label">VENTA / RECIBO</label>
-                      <div className="form-field-display id">ORDEN #{devolucionViendo?.idVenta || devolucionViendo?.id || 'N/A'}</div>
+                      <div className="form-field-display id">
+                        ORDEN #
+                        {devolucionViendo?.idVenta ||
+                          devolucionViendo?.id ||
+                          "N/A"}
+                      </div>
                     </div>
                   </div>
                   <div className="dev-form-group">
-                    <label className="dev-field-label">MOTIVO DE DEVOLUCIÓN</label>
+                    <label className="dev-field-label">
+                      MOTIVO DE DEVOLUCIÓN
+                    </label>
                     <div className="dev-field-textarea readonly">
-                      {devolucionViendo?.motivo || 'Sin motivo especificado.'}
+                      {devolucionViendo?.motivo || "Sin motivo especificado."}
                     </div>
                   </div>
                 </div>
@@ -537,173 +894,221 @@ const DevolucionesPage = () => {
               <div className="devoluciones-registration-card">
                 <div className="devoluciones-card-header">
                   <h3 className="devoluciones-card-title" style={{ margin: 0 }}>
-                    <FaExchangeAlt className="card-icon" /> {devolucionViendo?.isLot ? "PRODUCTOS EN EL PEDIDO" : "FLUJO DE MERCANCÍA"}
+                    <FaExchangeAlt className="card-icon" />{" "}
+                    {devolucionViendo?.isLot
+                      ? "PRODUCTOS EN EL PEDIDO"
+                      : "FLUJO DE MERCANCÍA"}
                   </h3>
                   {devolucionViendo?.mismoModelo && (
                     <div className="mismo-modelo-badge">MISMO MODELO</div>
                   )}
-                </div>                <div className="dev-card-body products">
+                </div>{" "}
+                <div className="dev-card-body products">
                   {devolucionViendo?.isLot ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}
+                    >
                       {(() => {
-                        const grouped = (devolucionViendo?.items || []).reduce((acc, item) => {
-                          const key = item.idProducto || item.productoOriginal;
-                          if (!acc[key]) {
-                            acc[key] = {
-                              nombre: item.nombreProducto || item.productoOriginal,
-                              total: 0,
-                              precio: item.precio,
-                              breakdown: []
-                            };
-                          }
-                          acc[key].total += (item.cantidad || 1);
-                          acc[key].breakdown.push({ talla: item.talla, cantidad: item.cantidad || 1 });
-                          return acc;
-                        }, {});
+                        const grouped = (devolucionViendo?.items || []).reduce(
+                          (acc, item) => {
+                            const key =
+                              item.idProducto || item.productoOriginal;
+                            if (!acc[key]) {
+                              acc[key] = {
+                                nombre:
+                                  item.nombreProducto || item.productoOriginal,
+                                total: 0,
+                                precio: item.precio,
+                                breakdown: [],
+                              };
+                            }
+                            acc[key].total += item.cantidad || 1;
+                            acc[key].breakdown.push({
+                              talla: item.talla,
+                              cantidad: item.cantidad || 1,
+                            });
+                            return acc;
+                          },
+                          {},
+                        );
 
                         return Object.entries(grouped).map(([id, group]) => {
                           return (
-                            <div key={id} style={{ marginBottom: '10px' }}>
-                              <div className="form-field-display product-readonly" style={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center', 
-                                minHeight: '48px', 
-                                padding: '0 15px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)'
-                              }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                  <span className="product-name" style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{group.nombre}</span>
-                                  <button 
-                                    onClick={() => openDetalleModal(group)}
+                            <div key={id} style={{ marginBottom: "10px" }}>
+                              <div
+                                className="form-field-display product-readonly"
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  minHeight: "48px",
+                                  padding: "0 15px",
+                                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "15px",
+                                    flexDirection: "column",
+                                    gap: "6px",
+                                  }}
+                                >
+                                  <span
+                                    className="product-name"
                                     style={{
-                                      background: 'transparent',
-                                      color: '#FFC300',
-                                      border: '1px solid #FFC300',
-                                      borderRadius: '4px',
-                                      padding: '4px 10px',
-                                      fontSize: '10px',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '6px',
-                                      fontWeight: '800'
+                                      fontSize: "14px",
+                                      fontWeight: "700",
+                                      color: "#fff",
                                     }}
                                   >
-                                    <FaEye /> VER DETALLES
-                                  </button>
+                                    {group.nombre}
+                                  </span>
+                                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    {group.breakdown.map((b, idx) => (
+                                      <span key={idx} style={{ fontSize: "11px", color: "#FFC300", background: "rgba(255,195,0,0.1)", padding: "4px 8px", borderRadius: "4px" }}>
+                                        Talla: {b.talla && b.talla !== "UNICA" && b.talla !== "N/A" ? b.talla : "ÚNICA"} | Cant: {b.cantidad}
+                                      </span>
+                                    ))}
+                                  </div>
                                 </div>
-                                <span className="product-price" style={{ color: '#FFC300', fontWeight: '800', fontSize: '15px' }}>
-                                  ${parseFloat(group.precio || 0).toLocaleString()}
+                                <span
+                                  className="product-price"
+                                  style={{
+                                    color: "#FFC300",
+                                    fontWeight: "800",
+                                    fontSize: "15px",
+                                  }}
+                                >
+                                  $
+                                  {parseFloat(
+                                    group.precio || 0,
+                                  ).toLocaleString()}
                                 </span>
                               </div>
                             </div>
                           );
                         });
                       })()}
-
-                      {/* 🪟 MODAL DE DETALLES (FLOTANTE) */}
-                      {detalleModal.show && (
-                        <div style={{
-                          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                          backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center',
-                          alignItems: 'center', zIndex: 9999, backdropFilter: 'blur(6px)',
-                          animation: 'fadeIn 0.2s ease'
-                        }} onClick={closeDetalleModal}>
-                          <div style={{
-                            width: '90%', maxWidth: '400px', backgroundColor: '#0f172a', // 🌌 AZUL PREMIUM PROFUNDO
-                            border: '2px solid #FFC300', borderRadius: '12px', padding: '25px',
-                            boxShadow: '0 0 40px rgba(0,0,0,0.5), 0 0 20px rgba(255,195,0,0.15)', position: 'relative'
-                          }} onClick={e => e.stopPropagation()}>
-                            <div style={{ textAlign: 'center', marginBottom: '25px' }}>
-                              <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                {detalleModal.group?.nombre}
-                              </p>
-                            </div>
-                            
-                            <div style={{ display: 'grid', gap: '8px' }}>
-                              {detalleModal.group?.breakdown.map((b, i) => (
-                                <div key={i} style={{ 
-                                  display: 'flex', justifyContent: 'center', alignItems: 'center',
-                                  padding: '10px 15px', backgroundColor: 'rgba(255,255,255,0.05)',
-                                  borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)'
-                                }}>
-                                  <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: '800', textTransform: 'uppercase' }}>
-                                    Talla: {b.talla && b.talla !== 'UNICA' && b.talla !== 'N/A' ? b.talla : 'ÚNICA'} | Cant: {b.cantidad}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-
-                            <button 
-                              onClick={closeDetalleModal}
-                              style={{
-                                width: '100%', marginTop: '30px', padding: '14px',
-                                backgroundColor: '#FFC300', color: '#000', border: 'none',
-                                borderRadius: '8px', fontWeight: '900', cursor: 'pointer',
-                                letterSpacing: '1px', fontSize: '13px', transition: 'transform 0.2s'
-                              }}
-                              onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                              onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                            >
-                              CERRAR VENTANA
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <div className="dev-form-row products">
                       <div className="dev-form-group product-main">
-                        <label className="dev-field-label return">PRODUCTO A DEVOLVER (SALIENTE)</label>
-                        <div className="form-field-display product-readonly" style={{ 
-                          display: 'flex', flexDirection: 'column', justifyContent: 'center', 
-                          minHeight: '80px', padding: '12px 15px', gap: '5px', position: 'relative'
-                        }}>
-                           <span className="product-name" style={{ 
-                             fontSize: '15px', 
-                             fontWeight: '800', 
-                             color: '#ffffff', 
-                             display: 'block',
-                             lineHeight: '1.2',
-                             paddingRight: '60px' // Space for price
-                           }}>
-                             {devolucionViendo?.productoOriginal || devolucionViendo?.nombreProducto || devolucionViendo?.producto || 'Producto'}
-                           </span>
-                           <div style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)' }}>
-                             <span className="product-price" style={{ color: '#FFC300', fontWeight: '800', fontSize: '14px' }}>
-                               ${devolucionViendo?.precio?.toLocaleString()}
-                             </span>
-                           </div>
+                        <label className="dev-field-label return">
+                          PRODUCTO A DEVOLVER (SALIENTE)
+                        </label>
+                        <div
+                          className="form-field-display product-readonly"
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            minHeight: "80px",
+                            padding: "12px 15px",
+                            gap: "5px",
+                            position: "relative",
+                          }}
+                        >
+                          <span
+                            className="product-name"
+                            style={{
+                              fontSize: "15px",
+                              fontWeight: "800",
+                              color: "#ffffff",
+                              display: "block",
+                              lineHeight: "1.2",
+                              paddingRight: "60px", // Space for price
+                            }}
+                          >
+                            {devolucionViendo?.productoOriginal ||
+                              devolucionViendo?.nombreProducto ||
+                              devolucionViendo?.producto ||
+                              "Producto"}
+                          </span>
+                          <div
+                            style={{
+                              position: "absolute",
+                              right: "15px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            <span
+                              className="product-price"
+                              style={{
+                                color: "#FFC300",
+                                fontWeight: "800",
+                                fontSize: "14px",
+                              }}
+                            >
+                              ${devolucionViendo?.precio?.toLocaleString()}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      {!devolucionViendo?.mismoModelo && devolucionViendo?.productoCambio ? (
+                      {!devolucionViendo?.mismoModelo &&
+                      devolucionViendo?.productoCambio ? (
                         <>
                           <div className="dev-product-separator horizontal">
                             <FaExchangeAlt />
                           </div>
                           <div className="dev-form-group product-main">
-                            <label className="dev-field-label replace">PRODUCTO DE REEMPLAZO (ENTRANTE)</label>
-                            <div className="form-field-display product-readonly replace" style={{ 
-                              display: 'flex', flexDirection: 'column', justifyContent: 'center', 
-                              minHeight: '80px', padding: '12px 15px', gap: '5px', position: 'relative'
-                            }}>
-                               <span className="product-name" style={{ 
-                                 fontSize: '15px', 
-                                 fontWeight: '800', 
-                                 color: '#ffffff', 
-                                 display: 'block',
-                                 lineHeight: '1.2',
-                                 paddingRight: '60px' // Space for price
-                               }}>
-                                 {devolucionViendo?.productoCambio || devolucionViendo?.nombreProductoCambio || devolucionViendo?.productoDestino || 'Producto'}
-                               </span>
-                               <div style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)' }}>
-                                 <span className="product-price" style={{ color: '#FFC300', fontWeight: '800', fontSize: '14px' }}>
-                                   ${devolucionViendo?.precio?.toLocaleString()}
-                                 </span>
-                               </div>
+                            <label className="dev-field-label replace">
+                              PRODUCTO DE REEMPLAZO (ENTRANTE)
+                            </label>
+                            <div
+                              className="form-field-display product-readonly replace"
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                minHeight: "80px",
+                                padding: "12px 15px",
+                                gap: "5px",
+                                position: "relative",
+                              }}
+                            >
+                              <span
+                                className="product-name"
+                                style={{
+                                  fontSize: "15px",
+                                  fontWeight: "800",
+                                  color: "#ffffff",
+                                  display: "block",
+                                  lineHeight: "1.2",
+                                  paddingRight: "60px", // Space for price
+                                }}
+                              >
+                                {devolucionViendo?.productoCambio ||
+                                  devolucionViendo?.nombreProductoCambio ||
+                                  devolucionViendo?.productoDestino ||
+                                  "Producto"}
+                              </span>
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  right: "15px",
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                }}
+                              >
+                                <span
+                                  className="product-price"
+                                  style={{
+                                    color: "#FFC300",
+                                    fontWeight: "800",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  ${devolucionViendo?.precio?.toLocaleString()}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </>
@@ -720,13 +1125,14 @@ const DevolucionesPage = () => {
                 </div>
               </div>
 
-              {devolucionViendo?.estado?.toLowerCase().includes('rechaz') && (
+              {devolucionViendo?.estado?.toLowerCase().includes("rechaz") && (
                 <div className="dev-rejection-reason-box">
                   <div className="rejection-title">
                     <FaTimesCircle size={14} /> MOTIVO DEL RECHAZO
                   </div>
                   <div className="rejection-content">
-                    {devolucionViendo?.motivoRechazo || 'No se especificó un motivo.'}
+                    {devolucionViendo?.motivoRechazo ||
+                      "No se especificó un motivo."}
                   </div>
                 </div>
               )}
@@ -740,66 +1146,105 @@ const DevolucionesPage = () => {
                 <h3 className="devoluciones-card-title">
                   <FaCamera className="card-icon" /> EVIDENCIA RECIBIDA
                 </h3>
-                
+
                 <div className="dev-evidence-dropzone detail-mode">
                   <div className="dev-evidence-content">
                     <div className="dev-evidence-viewer">
                       <div className="dev-preview-wrapper detail-view">
-                        <img 
-                          src={(devolucionViendo?.viewingEvidencia === 2 ? devolucionViendo?.evidencia2 : devolucionViendo?.evidencia) || devolucionViendo?.evidencia} 
-                          alt="Evidencia" 
+                        <img
+                          src={
+                            (devolucionViendo?.viewingEvidencia === 2
+                              ? devolucionViendo?.evidencia2
+                              : devolucionViendo?.evidencia) ||
+                            devolucionViendo?.evidencia
+                          }
+                          alt="Evidencia"
                         />
                       </div>
-                      
+
                       {devolucionViendo?.evidencia2 && (
                         <div className="dev-viewer-controls">
-                          <button 
-                            className={`dev-dot ${devolucionViendo?.viewingEvidencia === 1 ? 'active' : ''}`}
-                            onClick={() => setDevolucionViendo({ ...devolucionViendo, viewingEvidencia: 1 })}
+                          <button
+                            className={`dev-dot ${devolucionViendo?.viewingEvidencia === 1 ? "active" : ""}`}
+                            onClick={() =>
+                              setDevolucionViendo({
+                                ...devolucionViendo,
+                                viewingEvidencia: 1,
+                              })
+                            }
                           />
-                          <button 
-                            className={`dev-dot ${devolucionViendo?.viewingEvidencia === 2 ? 'active' : ''}`}
-                            onClick={() => setDevolucionViendo({ ...devolucionViendo, viewingEvidencia: 2 })}
+                          <button
+                            className={`dev-dot ${devolucionViendo?.viewingEvidencia === 2 ? "active" : ""}`}
+                            onClick={() =>
+                              setDevolucionViendo({
+                                ...devolucionViendo,
+                                viewingEvidencia: 2,
+                              })
+                            }
                           />
                         </div>
                       )}
 
                       <div className="dev-viewer-label">
-                        {devolucionViendo?.evidencia2 ? `Vista ${devolucionViendo?.viewingEvidencia} de 2` : 'Vista única'}
+                        {devolucionViendo?.evidencia2
+                          ? `Vista ${devolucionViendo?.viewingEvidencia} de 2`
+                          : "Vista única"}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="dev-detail-info-footer">
-                   <p>Esta información es de solo lectura y representa el estado actual de la solicitud en el sistema.</p>
+                  <p>
+                    Esta información es de solo lectura y representa el estado
+                    actual de la solicitud en el sistema.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-        )
-      }
+        )}
       </div>
 
       {/* MODAL DE CONFIRMACIÓN: APROBAR */}
       {devParaAprobar && (
-        <div className="delete-modal-backdrop" onClick={() => setDevParaAprobar(null)}>
-          <div className="delete-modal-container" onClick={e => e.stopPropagation()}>
+        <div
+          className="delete-modal-backdrop"
+          onClick={() => setDevParaAprobar(null)}
+        >
+          <div
+            className="delete-modal-container"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="delete-modal-title">Confirmar Aprobación</h3>
             <div className="delete-modal-message-container">
               <p className="delete-modal-message">
-                ¿Estás seguro de que deseas <span style={{color: '#F5C81B', fontWeight: 800}}>APROBAR</span> la devolución para <span className="delete-modal-highlight">{devParaAprobar.cliente}</span>?
+                ¿Estás seguro de que deseas{" "}
+                <span style={{ color: "#F5C81B", fontWeight: 800 }}>
+                  APROBAR
+                </span>{" "}
+                la devolución para{" "}
+                <span className="delete-modal-highlight">
+                  {devParaAprobar.cliente}
+                </span>
+                ?
               </p>
             </div>
             <div className="delete-modal-actions">
-              <button className="delete-modal-btn delete-modal-btn-cancel" onClick={() => setDevParaAprobar(null)}>CANCELAR</button>
-              <button 
-                className="delete-modal-btn delete-modal-btn-confirm" 
+              <button
+                className="delete-modal-btn delete-modal-btn-cancel"
+                onClick={() => setDevParaAprobar(null)}
+              >
+                CANCELAR
+              </button>
+              <button
+                className="delete-modal-btn delete-modal-btn-confirm"
                 onClick={() => {
-                  const status = availableStatuses.find(s => {
-                    const str = String(s).toLowerCase();
-                    return str.includes('aprob') || str.includes('complet');
-                  }) || 'Completada';
+                  const status =
+                    availableStatuses.find((s) => {
+                      const str = String(s).toLowerCase();
+                      return str.includes("aprob") || str.includes("complet");
+                    }) || "Completada";
                   updateStatus(devParaAprobar, status);
                   setDevParaAprobar(null);
                 }}
@@ -813,16 +1258,36 @@ const DevolucionesPage = () => {
 
       {/* MODAL DE RECHAZO: MOTIVO OBLIGATORIO */}
       {devParaRechazar && (
-        <div className="delete-modal-backdrop" onClick={() => { setDevParaRechazar(null); setMotivoRechazoTabla(''); }}>
-          <div className="delete-modal-container" style={{ maxWidth: '550px' }} onClick={e => e.stopPropagation()}>
+        <div
+          className="delete-modal-backdrop"
+          onClick={() => {
+            setDevParaRechazar(null);
+            setMotivoRechazoTabla("");
+          }}
+        >
+          <div
+            className="delete-modal-container"
+            style={{ maxWidth: "550px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="delete-modal-title">Rechazar Solicitud</h3>
             <div className="delete-modal-message-container">
               <p className="delete-modal-message">
-                Indique el motivo del rechazo para la solicitud de <span className="delete-modal-highlight">{devParaRechazar.cliente}</span>:
+                Indique el motivo del rechazo para la solicitud de{" "}
+                <span className="delete-modal-highlight">
+                  {devParaRechazar.cliente}
+                </span>
+                :
               </p>
-              <textarea 
-                className="dev-field-textarea" 
-                style={{ width: '100%', marginTop: '15px', height: '100px', backgroundColor: '#000', border: '1px solid #F5C81B4B' }}
+              <textarea
+                className="dev-field-textarea"
+                style={{
+                  width: "100%",
+                  marginTop: "15px",
+                  height: "100px",
+                  backgroundColor: "#000",
+                  border: "1px solid #F5C81B4B",
+                }}
                 placeholder="Escriba aquí el motivo detallado (Obligatorio)..."
                 value={motivoRechazoTabla}
                 onChange={(e) => setMotivoRechazoTabla(e.target.value)}
@@ -830,21 +1295,27 @@ const DevolucionesPage = () => {
               />
             </div>
             <div className="delete-modal-actions">
-              <button 
-                className="delete-modal-btn delete-modal-btn-cancel" 
-                onClick={() => { setDevParaRechazar(null); setMotivoRechazoTabla(''); }}
+              <button
+                className="delete-modal-btn delete-modal-btn-cancel"
+                onClick={() => {
+                  setDevParaRechazar(null);
+                  setMotivoRechazoTabla("");
+                }}
               >
                 CANCELAR
               </button>
-              <button 
-                className="delete-modal-btn delete-modal-btn-confirm" 
+              <button
+                className="delete-modal-btn delete-modal-btn-confirm"
                 style={{ opacity: !motivoRechazoTabla.trim() ? 0.5 : 1 }}
                 disabled={!motivoRechazoTabla.trim()}
                 onClick={() => {
-                  const status = availableStatuses.find(s => String(s).toLowerCase().includes('rechaz')) || 'Rechazada';
+                  const status =
+                    availableStatuses.find((s) =>
+                      String(s).toLowerCase().includes("rechaz"),
+                    ) || "Rechazada";
                   updateStatus(devParaRechazar, status, motivoRechazoTabla);
                   setDevParaRechazar(null);
-                  setMotivoRechazoTabla('');
+                  setMotivoRechazoTabla("");
                 }}
               >
                 RECHAZAR SOLICITUD

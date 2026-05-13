@@ -103,7 +103,7 @@ export const useProfile = () => {
 
   const showTopToast = (text) => {
     setToast({ open: true, text });
-    setTimeout(() => setToast({ open: false, text: "" }), 3000); // 3 SEGUNDOS (duración reducida)
+    setTimeout(() => setToast({ open: false, text: "" }), 2500); // 2.5 SEGUNDOS
   };
 
   const handleEditClick = () => setIsEditing(true);
@@ -318,9 +318,7 @@ export const useProfile = () => {
     
     // En devolución masiva forzamos "mismo modelo" para todos para simplificar el flujo
     if (!isBulkReturn) {
-      if (!returnFormData.mismoModelo && !returnFormData.replacementProductId) errs.replacement = true;
-      
-      if (!errs.replacement && !returnFormData.mismoModelo) {
+      if (!returnFormData.mismoModelo && returnFormData.replacementProductId) {
         const replacement = initialProducts.find(p => String(p.id) === String(returnFormData.replacementProductId));
         const originalPrice = getPriceNum(selectedProduct?.price);
         if (replacement && Math.floor(Number(replacement.precio)) !== originalPrice) errs.priceMismatch = true;
@@ -376,7 +374,7 @@ export const useProfile = () => {
             await profileApi.createReturn({
               ...commonData,
               idProductoOriginal: Number(selectedProduct.id),
-              idProductoCambio: returnFormData.mismoModelo ? Number(selectedProduct.id) : Number(returnFormData.replacementProductId),
+              idProductoCambio: returnFormData.mismoModelo ? Number(selectedProduct.id) : (returnFormData.replacementProductId ? Number(returnFormData.replacementProductId) : null),
               mismoModelo: returnFormData.mismoModelo,
               pedidoCompleto: false,
               cantidad: Number(returnFormData.cantidad || 1),
@@ -389,7 +387,8 @@ export const useProfile = () => {
           loadProfileData();
         } catch (err) {
           console.error("Error submitting return:", err);
-          showTopToast("No se pudo enviar la solicitud.");
+          const msg = err.response?.data?.message || "No se pudo enviar la solicitud.";
+          showTopToast(msg);
         }
       },
       onCancel: () => {
@@ -545,9 +544,10 @@ export const useProfile = () => {
 
     const getImageUrl = (raw) => {
       if (!raw) return null;
-      if (typeof raw === 'string' && raw.startsWith('/uploads')) {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        return `${baseUrl}${raw}`;
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      if (typeof raw === 'string') {
+        if (raw.startsWith('/uploads')) return `${baseUrl}${raw}`;
+        if (raw.includes("urlmovil-1.onrender.com")) return raw.replace("https://urlmovil-1.onrender.com", baseUrl);
       }
       return raw;
     };
@@ -584,9 +584,10 @@ export const useProfile = () => {
   const mapReturns = (returns) => {
     const getImageUrl = (raw) => {
       if (!raw) return null;
-      if (typeof raw === 'string' && raw.startsWith('/uploads')) {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        return `${baseUrl}${raw}`;
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      if (typeof raw === 'string') {
+        if (raw.startsWith('/uploads')) return `${baseUrl}${raw}`;
+        if (raw.includes("urlmovil-1.onrender.com")) return raw.replace("https://urlmovil-1.onrender.com", baseUrl);
       }
       return raw;
     };
@@ -614,7 +615,7 @@ export const useProfile = () => {
       };
 
       return {
-        id: `DEV-${r.id}`,
+        id: `DEV-${r.noDevolucion || (10000 + r.id)}`,
         orderId: `PED-${r.idVenta}`,
         rawOrderId: r.idVenta,
         productId: r.idProducto,

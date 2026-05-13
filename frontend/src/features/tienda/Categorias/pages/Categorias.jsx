@@ -13,8 +13,7 @@ const Categorias = () => {
     searchQuery,
     sortedCategories,
     loading,
-    getCategoryImage,
-    defaultImg
+    getCategoryImage
   } = useCategories();
 
 
@@ -42,7 +41,6 @@ const Categorias = () => {
               key={i}
               category={cat}
               imgUrl={getCategoryImage(cat)}
-              defaultImg={defaultImg}
             />
           ))
         ) : !loading ? (

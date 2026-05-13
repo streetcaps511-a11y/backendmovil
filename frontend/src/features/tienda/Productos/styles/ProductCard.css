@@ -94,14 +94,14 @@
 }
 .gm-product-name {
   margin: 0 !important; padding: 0 !important;
-  font-size: 0.82rem !important;
+  font-size: 0.95rem !important;
   font-weight: 800 !important;
   color: #ffffff !important;
   cursor: pointer;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.2;
   transition: color 0.2s ease;
@@ -198,8 +198,8 @@
 .gm-current-price {
   font-family: 'Inter', sans-serif;
   font-size: 1.1rem !important;
-  font-weight: 400 !important;
-  color: #fff !important;
+  font-weight: 900 !important;
+  color: #F5C81B !important;
   letter-spacing: 0.5px;
 }
 
